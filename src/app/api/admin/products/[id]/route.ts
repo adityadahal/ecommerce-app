@@ -49,6 +49,28 @@ export async function PUT(
   return NextResponse.json(product);
 }
 
+export async function PATCH(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const result = await requireAdmin();
+  if (isUnauthorized(result)) return result;
+
+  const { id } = await params;
+  const { stock } = await request.json();
+
+  if (typeof stock !== "number" || stock < 0) {
+    return NextResponse.json({ error: "Invalid stock value" }, { status: 400 });
+  }
+
+  const product = await db.product.update({
+    where: { id },
+    data: { stock },
+  });
+
+  return NextResponse.json(product);
+}
+
 export async function DELETE(
   _request: Request,
   { params }: { params: Promise<{ id: string }> }

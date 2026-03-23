@@ -2,9 +2,9 @@
 
 import { useState, useEffect } from "react";
 import { formatPrice } from "@/lib/utils";
-import { Button, Table, Card, Text, Skeleton } from "@mantine/core";
+import { Button, Table, Card, Text, Skeleton, Popover, NumberInput, Group, ActionIcon } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
-import { Plus, Pencil, Trash2 } from "lucide-react";
+import { Plus, Pencil, Trash2, PackagePlus, Check, X } from "lucide-react";
 import { ProductModal } from "@/components/dashboard/product-modal";
 import { ConfirmModal } from "@/components/dashboard/confirm-modal";
 
@@ -23,6 +23,63 @@ type Product = {
   images: string[];
   category: { name: string };
 };
+
+function RestockPopover({ product, onUpdated }: { product: Product; onUpdated: () => void }) {
+  const [opened, setOpened] = useState(false);
+  const [addQty, setAddQty] = useState<number | string>(0);
+  const [saving, setSaving] = useState(false);
+
+  const handleSave = async () => {
+    const qty = typeof addQty === "string" ? parseInt(addQty) : addQty;
+    if (!qty || qty <= 0) return;
+    setSaving(true);
+    const res = await fetch(`/api/admin/products/${product.id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ stock: product.stock + qty }),
+    });
+    if (res.ok) {
+      notifications.show({ message: `Added ${qty} to ${product.name}`, color: "green" });
+      setOpened(false);
+      setAddQty(0);
+      onUpdated();
+    } else {
+      notifications.show({ message: "Failed to update stock", color: "red" });
+    }
+    setSaving(false);
+  };
+
+  return (
+    <Popover opened={opened} onChange={setOpened} position="bottom" withArrow shadow="md">
+      <Popover.Target>
+        <ActionIcon variant="light" color="green" size="sm" onClick={() => setOpened(true)} title="Add stock">
+          <PackagePlus size={14} />
+        </ActionIcon>
+      </Popover.Target>
+      <Popover.Dropdown>
+        <Text size="xs" fw={600} mb={6}>Add stock to {product.name}</Text>
+        <Group gap="xs">
+          <NumberInput
+            value={addQty}
+            onChange={setAddQty}
+            min={1}
+            max={9999}
+            size="xs"
+            w={80}
+            placeholder="Qty"
+          />
+          <ActionIcon color="green" size="md" onClick={handleSave} loading={saving} disabled={!addQty || addQty <= 0}>
+            <Check size={14} />
+          </ActionIcon>
+          <ActionIcon variant="subtle" color="gray" size="md" onClick={() => { setOpened(false); setAddQty(0); }}>
+            <X size={14} />
+          </ActionIcon>
+        </Group>
+        <Text size="xs" c="dimmed" mt={4}>Current: {product.stock} → New: {product.stock + (typeof addQty === "number" ? addQty : parseInt(String(addQty)) || 0)}</Text>
+      </Popover.Dropdown>
+    </Popover>
+  );
+}
 
 export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
@@ -112,9 +169,12 @@ export default function ProductsPage() {
                     )}
                   </Table.Td>
                   <Table.Td>
-                    <Text size="sm" c={product.stock <= 5 ? "red" : undefined} fw={product.stock <= 5 ? 600 : undefined} className={product.stock > 5 ? "text-stone-700" : undefined}>
-                      {product.stock}
-                    </Text>
+                    <Group gap={6} wrap="nowrap">
+                      <Text size="sm" c={product.stock <= 5 ? "red" : undefined} fw={product.stock <= 5 ? 600 : undefined} className={product.stock > 5 ? "text-stone-700" : undefined}>
+                        {product.stock}
+                      </Text>
+                      <RestockPopover product={product} onUpdated={fetchProducts} />
+                    </Group>
                   </Table.Td>
                   <Table.Td>
                     {product.isActive ? (
