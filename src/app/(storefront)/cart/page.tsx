@@ -6,11 +6,13 @@ import { Button } from "@mantine/core";
 import { Minus, Plus, Trash2, ShoppingCart, ArrowRight } from "lucide-react";
 import { useLocalCart } from "@/hooks/use-cart";
 import { formatPrice, calculateGST } from "@/lib/utils";
+import { OrderSummary } from "@/components/store/order-summary";
+import { FREE_DELIVERY_THRESHOLD, DEFAULT_DELIVERY_FEE } from "@/lib/constants";
 
 export default function CartPage() {
   const { items, isLoaded, updateQuantity, removeItem, subtotal } = useLocalCart();
   const gst = calculateGST(subtotal);
-  const deliveryFee = subtotal >= 75 ? 0 : 9.95;
+  const deliveryFee = subtotal >= FREE_DELIVERY_THRESHOLD ? 0 : DEFAULT_DELIVERY_FEE;
   const total = subtotal + deliveryFee;
 
   if (!isLoaded) {
@@ -84,28 +86,8 @@ export default function CartPage() {
 
         <div className="rounded-lg border bg-gray-50 p-6 h-fit">
           <h2 className="text-lg font-semibold">Order Summary</h2>
-          <div className="mt-4 space-y-2 text-sm">
-            <div className="flex justify-between">
-              <span>Subtotal</span>
-              <span>{formatPrice(subtotal)}</span>
-            </div>
-            <div className="flex justify-between">
-              <span>GST (included)</span>
-              <span>{formatPrice(gst)}</span>
-            </div>
-            <div className="flex justify-between">
-              <span>Delivery</span>
-              <span>{deliveryFee === 0 ? "FREE" : formatPrice(deliveryFee)}</span>
-            </div>
-            {deliveryFee > 0 && (
-              <p className="text-xs text-muted-foreground">
-                Free delivery on orders over $75 (${(75 - subtotal).toFixed(2)} away)
-              </p>
-            )}
-            <div className="border-t pt-2 flex justify-between font-bold text-base">
-              <span>Total</span>
-              <span>{formatPrice(total)}</span>
-            </div>
+          <div className="mt-4">
+            <OrderSummary subtotal={subtotal} gst={gst} deliveryFee={deliveryFee} total={total} showFreeDeliveryHint />
           </div>
           <Link href="/checkout" className="mt-6 block">
             <Button color="green" fullWidth size="lg" rightSection={<ArrowRight size={16} />}>

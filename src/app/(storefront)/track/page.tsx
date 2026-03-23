@@ -3,7 +3,10 @@
 import { useState } from "react";
 import { Button, TextInput } from "@mantine/core";
 import { formatPrice } from "@/lib/utils";
-import { Search, Package, Truck, CheckCircle, Clock, XCircle } from "lucide-react";
+import { OrderSummary } from "@/components/store/order-summary";
+import { AddressDisplay } from "@/components/store/address-display";
+import { ORDER_STATUS_STEPS } from "@/lib/constants";
+import { Search, XCircle } from "lucide-react";
 
 type OrderData = {
   orderNumber: string;
@@ -19,13 +22,6 @@ type OrderData = {
   createdAt: string;
   items: { id: string; name: string; price: number; quantity: number }[];
 };
-
-const statusSteps = [
-  { key: "PENDING", label: "Order Placed", icon: Clock },
-  { key: "PROCESSING", label: "Processing", icon: Package },
-  { key: "OUT_FOR_DELIVERY", label: "Out for Delivery", icon: Truck },
-  { key: "DELIVERED", label: "Delivered", icon: CheckCircle },
-];
 
 export default function TrackOrderPage() {
   const [orderNumber, setOrderNumber] = useState("");
@@ -55,7 +51,7 @@ export default function TrackOrderPage() {
   };
 
   const isCancelled = order?.status === "CANCELLED";
-  const currentStepIndex = statusSteps.findIndex((s) => s.key === order?.status);
+  const currentStepIndex = ORDER_STATUS_STEPS.findIndex((s) => s.key === order?.status);
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-12">
@@ -117,7 +113,7 @@ export default function TrackOrderPage() {
               </div>
             ) : (
               <div className="flex items-center">
-                {statusSteps.map((step, i) => {
+                {ORDER_STATUS_STEPS.map((step, i) => {
                   const isComplete = i <= currentStepIndex;
                   const isCurrent = i === currentStepIndex;
                   const isLineComplete = i < currentStepIndex;
@@ -134,7 +130,7 @@ export default function TrackOrderPage() {
                           {step.label}
                         </span>
                       </div>
-                      {i < statusSteps.length - 1 && (
+                      {i < ORDER_STATUS_STEPS.length - 1 && (
                         <div className="flex-1 h-0.5 bg-gray-200 relative overflow-hidden mx-2 self-start mt-5">
                           <div
                             className="absolute inset-0 bg-primary transition-transform duration-700 origin-left"
@@ -159,11 +155,8 @@ export default function TrackOrderPage() {
                   <span>{formatPrice(item.price * item.quantity)}</span>
                 </div>
               ))}
-              <div className="border-t pt-2 mt-2 space-y-1 text-sm">
-                <div className="flex justify-between"><span>Subtotal</span><span>{formatPrice(order.subtotal)}</span></div>
-                <div className="flex justify-between"><span>Delivery</span><span>{order.deliveryFee === 0 ? "FREE" : formatPrice(order.deliveryFee)}</span></div>
-                <div className="flex justify-between"><span>GST (included)</span><span>{formatPrice(order.gst)}</span></div>
-                <div className="flex justify-between font-bold border-t pt-1"><span>Total</span><span>{formatPrice(order.total)}</span></div>
+              <div className="border-t pt-2 mt-2">
+                <OrderSummary subtotal={order.subtotal} gst={order.gst} deliveryFee={order.deliveryFee} total={order.total} />
               </div>
             </div>
           </div>
@@ -171,10 +164,7 @@ export default function TrackOrderPage() {
           {/* Delivery info */}
           <div className="rounded-lg border p-6">
             <h2 className="font-semibold mb-2">Delivery</h2>
-            <p className="text-sm text-muted-foreground">
-              {order.deliveryAddress.street}<br />
-              {order.deliveryAddress.suburb} {order.deliveryAddress.state} {order.deliveryAddress.postcode}
-            </p>
+            <AddressDisplay address={order.deliveryAddress} multiline />
             {order.deliverySlot && (
               <p className="text-sm text-muted-foreground mt-2">Time slot: {order.deliverySlot}</p>
             )}

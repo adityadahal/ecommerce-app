@@ -1,33 +1,35 @@
 import { NextResponse } from "next/server";
-import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
+import { requireAdmin, isUnauthorized } from "@/lib/admin-auth";
+import { VALID_ORDER_STATUSES } from "@/lib/constants";
 
 export async function GET(request: Request) {
-  const session = await auth();
-  if (session?.user?.role !== "ADMIN") {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 403 });
-  }
+  const result = await requireAdmin();
+  if (isUnauthorized(result)) return result;
 
   const { searchParams } = new URL(request.url);
   const status = searchParams.get("status");
+  const page = Math.max(1, parseInt(searchParams.get("page") || "1"));
+  const limit = Math.min(100, Math.max(1, parseInt(searchParams.get("limit") || "50")));
 
   const where: Record<string, unknown> = {};
-  if (status) where.status = status;
+  if (status && VALID_ORDER_STATUSES.includes(status as typeof VALID_ORDER_STATUSES[number])) {
+    where.status = status;
+  }
 
-  const orders = await db.order.findMany({
-    where,
-    include: {
-      user: { select: { name: true, email: true } },
-      items: true,
-    },
-    orderBy: { createdAt: "desc" },
-  }).then((orders) =>
-    orders.map((o) => ({
-      ...o,
-      customerName: o.customerName,
-      customerEmail: o.customerEmail,
-    }))
-  );
+  const [orders, total] = await Promise.all([
+    db.order.findMany({
+      where,
+      include: { items: true },
+      orderBy: { createdAt: "desc" },
+      skip: (page - 1) * limit,
+      take: limit,
+    }),
+    db.order.count({ where }),
+  ]);
 
-  return NextResponse.json(orders);
+  return NextResponse.json({
+    orders,
+    pagination: { page, limit, total, totalPages: Math.ceil(total / limit) },
+  });
 }

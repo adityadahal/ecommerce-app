@@ -1,9 +1,11 @@
 import { db } from "@/lib/db";
 import { stripe } from "@/lib/stripe";
 import { formatPrice } from "@/lib/utils";
-import { CheckCircle, Copy } from "lucide-react";
+import { CheckCircle } from "lucide-react";
 import { Button } from "@mantine/core";
 import Link from "next/link";
+import { OrderSummary } from "@/components/store/order-summary";
+import { AddressDisplay } from "@/components/store/address-display";
 
 export const dynamic = "force-dynamic";
 
@@ -112,30 +114,13 @@ export default async function OrderSuccessPage({ searchParams }: Props) {
           ))}
         </div>
 
-        <div className="border-t pt-2 space-y-1 text-sm">
-          <div className="flex justify-between">
-            <span>Subtotal</span>
-            <span>{formatPrice(order.subtotal)}</span>
-          </div>
-          <div className="flex justify-between">
-            <span>Delivery</span>
-            <span>{order.deliveryFee === 0 ? "FREE" : formatPrice(order.deliveryFee)}</span>
-          </div>
-          <div className="flex justify-between">
-            <span>GST (included)</span>
-            <span>{formatPrice(order.gst)}</span>
-          </div>
-          <div className="flex justify-between font-bold text-base border-t pt-2">
-            <span>Total</span>
-            <span>{formatPrice(order.total)}</span>
-          </div>
+        <div className="border-t pt-2">
+          <OrderSummary subtotal={order.subtotal} gst={order.gst} deliveryFee={order.deliveryFee} total={order.total} />
         </div>
 
         <div className="border-t pt-4">
           <h3 className="font-medium mb-1">Delivery Address</h3>
-          <p className="text-sm text-muted-foreground">
-            {address.street}, {address.suburb} {address.state} {address.postcode}
-          </p>
+          <AddressDisplay address={address} />
           {order.deliverySlot && (
             <>
               <h3 className="font-medium mt-3 mb-1">Delivery Time</h3>

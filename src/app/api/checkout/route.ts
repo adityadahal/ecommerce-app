@@ -25,9 +25,10 @@ export async function POST(request: Request) {
     let subtotal = 0;
     const lineItems = [];
     const orderItems = [];
+    const productMap = new Map(products.map((p) => [p.id, p]));
 
     for (const item of items) {
-      const product = products.find((p) => p.id === item.productId);
+      const product = productMap.get(item.productId);
       if (!product) continue;
       if (product.stock < item.quantity) {
         return NextResponse.json(

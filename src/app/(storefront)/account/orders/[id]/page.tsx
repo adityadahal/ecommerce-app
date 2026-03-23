@@ -5,6 +5,9 @@ import { formatPrice } from "@/lib/utils";
 import { Badge } from "@mantine/core";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
+import { ORDER_STATUS_COLORS, PAYMENT_STATUS_COLORS } from "@/lib/constants";
+import { OrderSummary } from "@/components/store/order-summary";
+import { AddressDisplay } from "@/components/store/address-display";
 
 type Props = {
   params: Promise<{ id: string }>;
@@ -23,17 +26,6 @@ export default async function OrderDetailPage({ params }: Props) {
 
   const address = order.deliveryAddress as { street: string; suburb: string; state: string; postcode: string };
 
-  const statusColor = (() => {
-    switch (order.status) {
-      case "DELIVERED": return "green";
-      case "PROCESSING": return "blue";
-      case "OUT_FOR_DELIVERY": return "violet";
-      case "CANCELLED": return "red";
-      case "PENDING": return "yellow";
-      default: return "gray";
-    }
-  })();
-
   return (
     <div>
       <Link href="/account/orders" className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-primary mb-4">
@@ -43,7 +35,7 @@ export default async function OrderDetailPage({ params }: Props) {
 
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold">Order {order.orderNumber}</h1>
-        <Badge color={statusColor}>{order.status.replace(/_/g, " ")}</Badge>
+        <Badge color={ORDER_STATUS_COLORS[order.status] || "gray"}>{order.status.replace(/_/g, " ")}</Badge>
       </div>
 
       <div className="grid gap-6 md:grid-cols-2">
@@ -56,11 +48,8 @@ export default async function OrderDetailPage({ params }: Props) {
                 <span>{formatPrice(item.price * item.quantity)}</span>
               </div>
             ))}
-            <div className="border-t pt-3 space-y-1 text-sm">
-              <div className="flex justify-between"><span>Subtotal</span><span>{formatPrice(order.subtotal)}</span></div>
-              <div className="flex justify-between"><span>Delivery</span><span>{order.deliveryFee === 0 ? "FREE" : formatPrice(order.deliveryFee)}</span></div>
-              <div className="flex justify-between"><span>GST (included)</span><span>{formatPrice(order.gst)}</span></div>
-              <div className="flex justify-between font-bold"><span>Total</span><span>{formatPrice(order.total)}</span></div>
+            <div className="border-t pt-3">
+              <OrderSummary subtotal={order.subtotal} gst={order.gst} deliveryFee={order.deliveryFee} total={order.total} />
             </div>
           </div>
         </div>
@@ -68,10 +57,7 @@ export default async function OrderDetailPage({ params }: Props) {
         <div className="space-y-6">
           <div className="rounded-lg border p-6">
             <h2 className="font-semibold mb-2">Delivery Address</h2>
-            <p className="text-sm text-gray-500">
-              {address.street}<br />
-              {address.suburb} {address.state} {address.postcode}
-            </p>
+            <AddressDisplay address={address} multiline />
             {order.deliverySlot && (
               <>
                 <h3 className="font-medium mt-4 mb-1">Delivery Slot</h3>
@@ -82,7 +68,7 @@ export default async function OrderDetailPage({ params }: Props) {
 
           <div className="rounded-lg border p-6">
             <h2 className="font-semibold mb-2">Payment</h2>
-            <Badge color={order.paymentStatus === "PAID" ? "green" : "gray"}>
+            <Badge color={PAYMENT_STATUS_COLORS[order.paymentStatus] || "gray"}>
               {order.paymentStatus}
             </Badge>
             <p className="text-sm text-gray-500 mt-2">

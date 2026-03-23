@@ -25,6 +25,8 @@ export function ProductImages({ images, name }: { images: string[]; name: string
             <button
               key={i}
               onClick={() => setSelected(i)}
+              aria-label={`View image ${i + 1} of ${name}`}
+              aria-current={i === selected ? "true" : undefined}
               className={`relative h-20 w-20 overflow-hidden rounded-md border-2 transition-all duration-200 ${
                 i === selected ? "border-primary" : "border-transparent"
               }`}

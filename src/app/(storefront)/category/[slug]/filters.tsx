@@ -52,8 +52,9 @@ export function CategoryFilters() {
           onChange={(e) => updateParams("maxPrice", e.currentTarget.value)}
         />
       </div>
-      <label className="flex items-center gap-2 text-sm">
+      <label htmlFor="inStock-filter" className="flex items-center gap-2 text-sm cursor-pointer">
         <input
+          id="inStock-filter"
           type="checkbox"
           checked={searchParams.get("inStock") === "true"}
           onChange={(e) => updateParams("inStock", e.target.checked ? "true" : "")}

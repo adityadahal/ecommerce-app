@@ -30,6 +30,10 @@ export async function POST(request: Request) {
       const orderId = session.metadata?.orderId;
 
       if (orderId) {
+        // Idempotency check: skip if already paid
+        const existing = await db.order.findUnique({ where: { id: orderId } });
+        if (!existing || existing.paymentStatus === "PAID") break;
+
         // Update order payment status
         const order = await db.order.update({
           where: { id: orderId },

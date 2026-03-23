@@ -3,19 +3,12 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button, TextInput, NativeSelect } from "@mantine/core";
+import { notifications } from "@mantine/notifications";
 import { useLocalCart } from "@/hooks/use-cart";
 import { formatPrice, calculateGST } from "@/lib/utils";
+import { OrderSummary } from "@/components/store/order-summary";
+import { AU_STATES, DELIVERY_SLOTS, FREE_DELIVERY_THRESHOLD, DEFAULT_DELIVERY_FEE } from "@/lib/constants";
 import { Loader2 } from "lucide-react";
-
-const AU_STATES = ["NSW", "VIC", "QLD", "WA", "SA", "TAS", "ACT", "NT"];
-
-const DELIVERY_SLOTS = [
-  "Today 2pm - 6pm",
-  "Today 6pm - 9pm",
-  "Tomorrow 8am - 12pm",
-  "Tomorrow 12pm - 4pm",
-  "Tomorrow 4pm - 8pm",
-];
 
 export default function CheckoutPage() {
   const { items, subtotal, clearCart } = useLocalCart();
@@ -34,7 +27,7 @@ export default function CheckoutPage() {
   const [state, setState] = useState("VIC");
   const [postcode, setPostcode] = useState("");
 
-  const deliveryFee = subtotal >= 75 ? 0 : 9.95;
+  const deliveryFee = subtotal >= FREE_DELIVERY_THRESHOLD ? 0 : DEFAULT_DELIVERY_FEE;
   const total = subtotal + deliveryFee;
   const gst = calculateGST(total);
 
@@ -68,11 +61,11 @@ export default function CheckoutPage() {
         window.location.href = data.url;
       } else {
         setLoading(false);
-        alert(data.error || "Something went wrong");
+        notifications.show({ message: data.error || "Something went wrong", color: "red" });
       }
     } catch {
       setLoading(false);
-      alert("Something went wrong");
+      notifications.show({ message: "Something went wrong", color: "red" });
     }
   };
 
@@ -177,23 +170,8 @@ export default function CheckoutPage() {
         <div className="lg:col-span-2">
           <div className="sticky top-24 rounded-lg border bg-gray-50 p-6">
             <h2 className="text-lg font-semibold">Order Summary</h2>
-            <div className="mt-4 space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span>Subtotal</span>
-                <span>{formatPrice(subtotal)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>GST (included)</span>
-                <span>{formatPrice(gst)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Delivery</span>
-                <span>{deliveryFee === 0 ? "FREE" : formatPrice(deliveryFee)}</span>
-              </div>
-              <div className="border-t pt-2 flex justify-between font-bold text-base">
-                <span>Total</span>
-                <span>{formatPrice(total)}</span>
-              </div>
+            <div className="mt-4">
+              <OrderSummary subtotal={subtotal} gst={gst} deliveryFee={deliveryFee} total={total} />
             </div>
             <Button onClick={handleCheckout} disabled={loading || !isFormValid} color="green" fullWidth size="lg" className="mt-6">
               {loading ? (

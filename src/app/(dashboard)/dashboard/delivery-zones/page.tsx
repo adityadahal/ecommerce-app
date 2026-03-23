@@ -1,10 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Button, TextInput, Badge } from "@mantine/core";
+import { Button, Badge, Table, Card, Text } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
-import { Plus, Trash2 } from "lucide-react";
+import { Plus, Trash2, Pencil } from "lucide-react";
 import { formatPrice } from "@/lib/utils";
+import { DeliveryZoneModal } from "@/components/dashboard/delivery-zone-modal";
+import { ConfirmModal } from "@/components/dashboard/confirm-modal";
 
 type DeliveryZone = {
   id: string;
@@ -18,12 +20,10 @@ type DeliveryZone = {
 
 export default function DeliveryZonesPage() {
   const [zones, setZones] = useState<DeliveryZone[]>([]);
-  const [showForm, setShowForm] = useState(false);
-  const [name, setName] = useState("");
-  const [postcodeFrom, setPostcodeFrom] = useState("");
-  const [postcodeTo, setPostcodeTo] = useState("");
-  const [deliveryFee, setDeliveryFee] = useState("9.95");
-  const [minOrderForFree, setMinOrderForFree] = useState("75");
+  const [modalOpen, setModalOpen] = useState(false);
+  const [editingZone, setEditingZone] = useState<DeliveryZone | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<DeliveryZone | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   const fetchZones = () => {
     fetch("/api/admin/delivery-zones").then((r) => r.json()).then(setZones).catch(() => {});
@@ -31,96 +31,86 @@ export default function DeliveryZonesPage() {
 
   useEffect(() => { fetchZones(); }, []);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const res = await fetch("/api/admin/delivery-zones", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        name,
-        postcodeFrom,
-        postcodeTo,
-        deliveryFee: parseFloat(deliveryFee),
-        minOrderForFree: minOrderForFree ? parseFloat(minOrderForFree) : null,
-      }),
-    });
-    if (res.ok) {
-      notifications.show({ message: "Delivery zone created", color: "green" });
-      setShowForm(false);
-      setName(""); setPostcodeFrom(""); setPostcodeTo("");
-      fetchZones();
-    }
-  };
+  const openCreate = () => { setEditingZone(null); setModalOpen(true); };
+  const openEdit = (zone: DeliveryZone) => { setEditingZone(zone); setModalOpen(true); };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm("Delete this delivery zone?")) return;
-    const res = await fetch(`/api/admin/delivery-zones/${id}`, { method: "DELETE" });
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    setDeleting(true);
+    const res = await fetch(`/api/admin/delivery-zones/${deleteTarget.id}`, { method: "DELETE" });
     if (res.ok) {
       notifications.show({ message: "Delivery zone deleted", color: "green" });
+      setDeleteTarget(null);
       fetchZones();
+    } else {
+      notifications.show({ message: "Failed to delete zone", color: "red" });
     }
+    setDeleting(false);
   };
 
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold">Delivery Zones</h2>
-        <Button color="green" leftSection={<Plus size={16} />} onClick={() => setShowForm(!showForm)}>
-          Add Zone
-        </Button>
+        <div>
+          <Text size="xl" fw={700}>Delivery Zones</Text>
+          <Text size="sm" c="dimmed">{zones.length} zones</Text>
+        </div>
+        <Button color="green" leftSection={<Plus size={16} />} onClick={openCreate}>Add Zone</Button>
       </div>
 
-      {showForm && (
-        <form onSubmit={handleSubmit} className="mb-6 rounded-lg border p-4 space-y-3">
-          <div className="grid grid-cols-5 gap-3">
-            <TextInput value={name} onChange={(e) => setName(e.currentTarget.value)} placeholder="Zone Name" required />
-            <TextInput value={postcodeFrom} onChange={(e) => setPostcodeFrom(e.currentTarget.value)} placeholder="From Postcode" maxLength={4} required />
-            <TextInput value={postcodeTo} onChange={(e) => setPostcodeTo(e.currentTarget.value)} placeholder="To Postcode" maxLength={4} required />
-            <TextInput type="number" step="0.01" value={deliveryFee} onChange={(e) => setDeliveryFee(e.currentTarget.value)} placeholder="Fee" required />
-            <TextInput type="number" step="0.01" value={minOrderForFree} onChange={(e) => setMinOrderForFree(e.currentTarget.value)} placeholder="Free delivery min" />
-          </div>
-          <div className="flex gap-2">
-            <Button type="submit" color="green" size="sm">Create</Button>
-            <Button type="button" variant="outline" size="sm" onClick={() => setShowForm(false)}>Cancel</Button>
-          </div>
-        </form>
-      )}
-
-      <div className="rounded-lg border bg-white">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b bg-gray-50">
-              <th className="px-4 py-3 text-left font-medium">Zone</th>
-              <th className="px-4 py-3 text-left font-medium">Postcodes</th>
-              <th className="px-4 py-3 text-left font-medium">Delivery Fee</th>
-              <th className="px-4 py-3 text-left font-medium">Free Delivery Min</th>
-              <th className="px-4 py-3 text-left font-medium">Status</th>
-              <th className="px-4 py-3 text-left font-medium">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
+      <Card shadow="sm" radius="md" withBorder p={0}>
+        <Table verticalSpacing="sm" horizontalSpacing="md">
+          <Table.Thead>
+            <Table.Tr>
+              <Table.Th>Zone</Table.Th>
+              <Table.Th>Postcodes</Table.Th>
+              <Table.Th>Delivery Fee</Table.Th>
+              <Table.Th>Free Delivery Min</Table.Th>
+              <Table.Th>Status</Table.Th>
+              <Table.Th>Actions</Table.Th>
+            </Table.Tr>
+          </Table.Thead>
+          <Table.Tbody>
             {zones.map((zone) => (
-              <tr key={zone.id} className="border-b">
-                <td className="px-4 py-3 font-medium">{zone.name}</td>
-                <td className="px-4 py-3">{zone.postcodeFrom} - {zone.postcodeTo}</td>
-                <td className="px-4 py-3">{formatPrice(zone.deliveryFee)}</td>
-                <td className="px-4 py-3">{zone.minOrderForFree ? formatPrice(zone.minOrderForFree) : "-"}</td>
-                <td className="px-4 py-3">
-                  <Badge color={zone.isActive ? "green" : "gray"}>
+              <Table.Tr key={zone.id}>
+                <Table.Td><Text size="sm" fw={500}>{zone.name}</Text></Table.Td>
+                <Table.Td><Text size="sm">{zone.postcodeFrom} - {zone.postcodeTo}</Text></Table.Td>
+                <Table.Td><Text size="sm">{formatPrice(zone.deliveryFee)}</Text></Table.Td>
+                <Table.Td><Text size="sm">{zone.minOrderForFree ? formatPrice(zone.minOrderForFree) : "-"}</Text></Table.Td>
+                <Table.Td>
+                  <Badge color={zone.isActive ? "green" : "gray"} size="sm">
                     {zone.isActive ? "Active" : "Inactive"}
                   </Badge>
-                </td>
-                <td className="px-4 py-3">
-                  <button onClick={() => handleDelete(zone.id)} className="text-red-500 hover:underline"><Trash2 size={14} /></button>
-                </td>
-              </tr>
+                </Table.Td>
+                <Table.Td>
+                  <div className="flex gap-2">
+                    <Button color="blue" size="compact-sm" leftSection={<Pencil size={14} />} onClick={() => openEdit(zone)}>Edit</Button>
+                    <Button color="red" size="compact-sm" leftSection={<Trash2 size={14} />} onClick={() => setDeleteTarget(zone)}>Delete</Button>
+                  </div>
+                </Table.Td>
+              </Table.Tr>
             ))}
             {zones.length === 0 && (
-              <tr><td colSpan={6} className="px-4 py-8 text-center text-gray-500">No delivery zones configured</td></tr>
+              <Table.Tr>
+                <Table.Td colSpan={6}>
+                  <Text ta="center" py="xl" c="dimmed">No delivery zones configured</Text>
+                </Table.Td>
+              </Table.Tr>
             )}
-          </tbody>
-        </table>
-      </div>
+          </Table.Tbody>
+        </Table>
+      </Card>
+
+      <DeliveryZoneModal opened={modalOpen} onClose={() => setModalOpen(false)} onSaved={fetchZones} zone={editingZone} />
+
+      <ConfirmModal
+        opened={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={handleDelete}
+        loading={deleting}
+        title="Delete Delivery Zone"
+        message={`Are you sure you want to delete "${deleteTarget?.name}"? This action cannot be undone.`}
+      />
     </div>
   );
 }
