@@ -157,8 +157,11 @@ model Order {
   total           Float
   deliveryAddress Json
   deliverySlot    String?
-  stripeSessionId String?
-  notes           String?
+  stripeSessionId        String?
+  stripePaymentIntentId  String?
+  cardBrand              String?
+  cardLast4              String?
+  notes                  String?
   customerName    String?
   customerEmail   String?
   customerPhone   String?

@@ -1,7 +1,8 @@
 import { db } from "@/lib/db";
 import { formatPrice } from "@/lib/utils";
-import { Card, Text, Title, Group, SimpleGrid, ThemeIcon, Badge, Stack } from "@mantine/core";
-import { ShoppingBag, DollarSign, Package, Truck } from "lucide-react";
+import Link from "next/link";
+import { Card, Text, Title, Group, SimpleGrid, ThemeIcon, Badge, Stack, Button } from "@mantine/core";
+import { ShoppingBag, DollarSign, Package, Truck, ArrowRight } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
@@ -69,7 +70,12 @@ export default async function DashboardPage() {
 
       <SimpleGrid cols={{ base: 1, lg: 2 }} spacing="md">
         <Card shadow="sm" padding="lg" radius="lg" withBorder>
-          <Title order={4} mb="md">Recent Orders</Title>
+          <Group justify="space-between" mb="md">
+            <Title order={4}>Recent Orders</Title>
+            <Link href="/dashboard/orders">
+              <Button variant="subtle" color="green" size="xs" rightSection={<ArrowRight size={14} />}>View All</Button>
+            </Link>
+          </Group>
           {recentOrders.length === 0 ? <Text size="sm" c="dimmed">No orders yet</Text> : (
             <Stack gap="xs">
               {recentOrders.map((order) => (
@@ -91,7 +97,12 @@ export default async function DashboardPage() {
         </Card>
 
         <Card shadow="sm" padding="lg" radius="lg" withBorder>
-          <Title order={4} mb="md">Low Stock Alerts</Title>
+          <Group justify="space-between" mb="md">
+            <Title order={4}>Low Stock Alerts</Title>
+            <Link href="/dashboard/products">
+              <Button variant="subtle" color="green" size="xs" rightSection={<ArrowRight size={14} />}>View All</Button>
+            </Link>
+          </Group>
           {lowStock.length === 0 ? <Text size="sm" c="dimmed">All products well stocked</Text> : (
             <Stack gap="xs">
               {lowStock.map((product) => (

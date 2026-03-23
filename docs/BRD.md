@@ -1,9 +1,9 @@
 # Business Requirements Document (BRD)
 # FreshMart — Grocery Store E-Commerce Application
 
-**Version:** 2.0
+**Version:** 2.1
 **Date:** 22 March 2026
-**Last Updated:** 22 March 2026
+**Last Updated:** 23 March 2026
 **Author:** Aditya Kishor Dahal
 
 ---
@@ -101,7 +101,13 @@ FreshMart provides a custom-built, self-hosted solution with:
 | PAY-8 | Stripe webhook: payment failed → order failed   | Done   |
 | PAY-9 | Order confirmation page with prominent order number | Done |
 | PAY-10 | Auto stock decrement on successful payment      | Done   |
-| PAY-11 | Apple Pay / Google Pay / Afterpay              | Planned (Stripe config) |
+| PAY-11 | Store card details (brand + last 4 digits) on order | Done |
+| PAY-12 | Store Stripe Payment Intent ID for refunds      | Done   |
+| PAY-13 | Display card info on order success, track, admin, account pages | Done |
+| PAY-14 | Auto-refund via Stripe when order is cancelled  | Planned |
+| PAY-15 | Refund status tracking (NONE → PENDING → REFUNDED → FAILED) | Planned |
+| PAY-16 | Stripe webhook: charge.refunded → update refund status | Planned |
+| PAY-17 | Apple Pay / Google Pay / Afterpay               | Planned (Stripe config) |
 
 ### 5.5 Order Tracking (Public)
 | ID    | Requirement                                      | Status |
@@ -192,6 +198,7 @@ Order
 ├── id, orderNumber, userId (optional), status, paymentStatus
 ├── subtotal, deliveryFee, gst, total
 ├── deliveryAddress (JSON), deliverySlot, stripeSessionId
+├── stripePaymentIntentId, cardBrand, cardLast4 (payment details)
 ├── customerName, customerEmail, customerPhone (guest info)
 └── → OrderItem[]
 
@@ -273,6 +280,10 @@ DeliveryZone
 | Order Tracking | Customers track orders via order number at /track |
 | Password | Admin passwords: minimum 8 characters, hashed with bcrypt (12 rounds) |
 | Admin Access | Only users with role=ADMIN can access `/dashboard/*` |
+| Card Details | Card brand and last 4 digits are captured from Stripe on successful payment and stored on the order |
+| Refund on Cancel | When admin cancels a PAID order, a full refund is issued automatically via Stripe Refunds API (Planned) |
+| Refund Eligibility | Only orders with paymentStatus=PAID and a stored stripePaymentIntentId can be refunded |
+| Stock Restoration | When a paid order is cancelled and refunded, stock should be restored (incremented back) |
 
 ### Stripe Test Cards
 | Card Number | Result |
@@ -347,6 +358,7 @@ See `.env.example` for all required variables.
 
 | Priority | Feature                                |
 |----------|----------------------------------------|
+| High     | Auto-refund on order cancellation (see [REFUND-PROCESS.md](REFUND-PROCESS.md)) |
 | High     | DB-backed cart for logged-in users     |
 | High     | Cloudinary image upload in admin       |
 | High     | CSV bulk product import                |

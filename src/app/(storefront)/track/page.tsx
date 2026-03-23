@@ -6,13 +6,14 @@ import { formatPrice } from "@/lib/utils";
 import { OrderSummary } from "@/components/store/order-summary";
 import { AddressDisplay } from "@/components/store/address-display";
 import { ORDER_STATUS_STEPS } from "@/lib/constants";
-import { Search, XCircle, Package } from "lucide-react";
+import { Search, XCircle, Package, CreditCard } from "lucide-react";
 
 type OrderData = {
   orderNumber: string; status: string; paymentStatus: string;
   subtotal: number; deliveryFee: number; gst: number; total: number;
   deliveryAddress: { street: string; suburb: string; state: string; postcode: string };
   deliverySlot: string | null; customerName: string | null; createdAt: string;
+  cardBrand: string | null; cardLast4: string | null;
   items: { id: string; name: string; price: number; quantity: number }[];
 };
 
@@ -128,6 +129,16 @@ export default function TrackOrderPage() {
             </Stack>
             <OrderSummary subtotal={order.subtotal} gst={order.gst} deliveryFee={order.deliveryFee} total={order.total} />
           </Paper>
+
+          {order.cardBrand && order.cardLast4 && (
+            <Paper p="lg" radius="lg" withBorder>
+              <Text fw={600} mb="xs">Payment Method</Text>
+              <Group gap="xs">
+                <CreditCard size={16} className="text-gray-400" />
+                <Text size="sm" c="dimmed" tt="capitalize">{order.cardBrand} ending in {order.cardLast4}</Text>
+              </Group>
+            </Paper>
+          )}
 
           <Paper p="lg" radius="lg" withBorder>
             <Text fw={600} mb="xs">Delivery</Text>

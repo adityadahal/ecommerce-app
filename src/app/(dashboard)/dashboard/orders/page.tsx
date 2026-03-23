@@ -1,11 +1,11 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Button, Select, Badge, Collapse, Skeleton, Table, Card, Text } from "@mantine/core";
+import { Button, Badge, Collapse, Skeleton, Table, Card, Text, Combobox, InputBase, useCombobox, Group, CloseButton } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import { formatPrice } from "@/lib/utils";
-import { VALID_ORDER_STATUSES, PAYMENT_STATUS_COLORS } from "@/lib/constants";
-import { ChevronDown, ChevronRight, Phone, Mail, MapPin, Clock, Package } from "lucide-react";
+import { VALID_ORDER_STATUSES } from "@/lib/constants";
+import { ChevronDown, ChevronRight, Phone, Mail, MapPin, Clock, Package, CreditCard, CheckCircle, XCircle, CircleDot } from "lucide-react";
 
 type Order = {
   id: string;
@@ -22,6 +22,8 @@ type Order = {
   customerPhone: string | null;
   deliveryAddress: { street: string; suburb: string; state: string; postcode: string };
   deliverySlot: string | null;
+  cardBrand: string | null;
+  cardLast4: string | null;
   items: { id: string; name: string; price: number; quantity: number }[];
 };
 
@@ -33,15 +35,140 @@ type Pagination = {
 };
 
 const STATUS_OPTIONS = VALID_ORDER_STATUSES.map((s) => ({ value: s, label: s.replace(/_/g, " ") }));
-const FILTER_OPTIONS = [{ value: "", label: "All Orders" }, ...STATUS_OPTIONS];
+const FILTER_STATUSES = ["PROCESSING", "OUT_FOR_DELIVERY", "DELIVERED", "CANCELLED"] as const;
+const FILTER_OPTIONS = FILTER_STATUSES.map((s) => ({ value: s, label: s.replace(/_/g, " ") }));
+
+const STATUS_CONFIG: Record<string, { color: string; icon: typeof CircleDot }> = {
+  PENDING: { color: "var(--mantine-color-yellow-6)", icon: CircleDot },
+  PROCESSING: { color: "var(--mantine-color-blue-6)", icon: CircleDot },
+  OUT_FOR_DELIVERY: { color: "var(--mantine-color-violet-6)", icon: CircleDot },
+  DELIVERED: { color: "var(--mantine-color-green-6)", icon: CheckCircle },
+  CANCELLED: { color: "var(--mantine-color-red-6)", icon: XCircle },
+};
+
+function StatusCombobox({ value, onChange, disabled }: { value: string; onChange: (val: string) => void; disabled: boolean }) {
+  const combobox = useCombobox({ onDropdownClose: () => combobox.resetSelectedOption() });
+  const config = STATUS_CONFIG[value] || STATUS_CONFIG.PENDING;
+  const Icon = config.icon;
+
+  if (disabled) {
+    return (
+      <InputBase
+        component="div"
+        size="xs"
+        w={170}
+        rightSection={<Combobox.Chevron />}
+        rightSectionPointerEvents="none"
+        styles={{ input: { border: `1.5px solid ${config.color}`, borderRadius: "var(--mantine-radius-md)", cursor: "default", opacity: 0.7 } }}
+      >
+        <Group gap={6} wrap="nowrap">
+          <div style={{ width: 8, height: 8, borderRadius: "50%", background: config.color, flexShrink: 0 }} />
+          <Text size="xs" fw={500}>{value.replace(/_/g, " ")}</Text>
+        </Group>
+      </InputBase>
+    );
+  }
+
+  return (
+    <Combobox store={combobox} onOptionSubmit={(val) => { onChange(val); combobox.closeDropdown(); }}>
+      <Combobox.Target>
+        <InputBase
+          component="button"
+          type="button"
+          pointer
+          size="xs"
+          w={170}
+          onClick={() => combobox.toggleDropdown()}
+          rightSection={<Combobox.Chevron />}
+          rightSectionPointerEvents="none"
+          styles={{ input: { border: `1.5px solid ${config.color}`, borderRadius: "var(--mantine-radius-md)" } }}
+        >
+          <Group gap={6} wrap="nowrap">
+            <div style={{ width: 8, height: 8, borderRadius: "50%", background: config.color, flexShrink: 0 }} />
+            <Text size="xs" fw={500}>{value.replace(/_/g, " ")}</Text>
+          </Group>
+        </InputBase>
+      </Combobox.Target>
+      <Combobox.Dropdown>
+        <Combobox.Options>
+          {STATUS_OPTIONS.filter((opt) => opt.value !== "PENDING").map((opt) => {
+            const optConfig = STATUS_CONFIG[opt.value] || STATUS_CONFIG.PENDING;
+            return (
+              <Combobox.Option key={opt.value} value={opt.value} active={opt.value === value}>
+                <Group gap={8} wrap="nowrap">
+                  <div style={{ width: 8, height: 8, borderRadius: "50%", background: optConfig.color, flexShrink: 0 }} />
+                  <Text size="xs">{opt.label}</Text>
+                </Group>
+              </Combobox.Option>
+            );
+          })}
+        </Combobox.Options>
+      </Combobox.Dropdown>
+    </Combobox>
+  );
+}
+
+function FilterCombobox({ value, onChange }: { value: string; onChange: (val: string) => void }) {
+  const combobox = useCombobox({ onDropdownClose: () => combobox.resetSelectedOption() });
+  const selectedLabel = value ? value.replace(/_/g, " ") : "";
+  const config = value ? STATUS_CONFIG[value] : null;
+
+  return (
+    <Combobox store={combobox} onOptionSubmit={(val) => { onChange(val); combobox.closeDropdown(); }}>
+      <Combobox.Target>
+        <InputBase
+          component="button"
+          type="button"
+          pointer
+          w={220}
+          onClick={() => combobox.toggleDropdown()}
+          rightSection={
+            value ? (
+              <CloseButton size="sm" onClick={(e) => { e.stopPropagation(); onChange(""); }} />
+            ) : (
+              <Combobox.Chevron />
+            )
+          }
+          rightSectionPointerEvents={value ? "all" : "none"}
+        >
+          {value ? (
+            <Group gap={8} wrap="nowrap">
+              <div style={{ width: 8, height: 8, borderRadius: "50%", background: config?.color, flexShrink: 0 }} />
+              <Text size="sm" fw={500} tt="capitalize">{selectedLabel}</Text>
+            </Group>
+          ) : (
+            <Text size="sm" c="dimmed">All Orders</Text>
+          )}
+        </InputBase>
+      </Combobox.Target>
+      <Combobox.Dropdown>
+        <Combobox.Options>
+          {FILTER_OPTIONS.map((opt) => {
+            const optConfig = STATUS_CONFIG[opt.value];
+            return (
+              <Combobox.Option key={opt.value} value={opt.value} active={opt.value === value}>
+                <Group gap={8} wrap="nowrap">
+                  <div style={{ width: 8, height: 8, borderRadius: "50%", background: optConfig?.color, flexShrink: 0 }} />
+                  <Text size="sm">{opt.label}</Text>
+                </Group>
+              </Combobox.Option>
+            );
+          })}
+        </Combobox.Options>
+      </Combobox.Dropdown>
+    </Combobox>
+  );
+}
 
 function OrderRow({
   order,
+  index,
   expanded,
   onToggle,
   onStatusChange,
 }: {
   order: Order;
+  index: number;
   expanded: boolean;
   onToggle: () => void;
   onStatusChange: (status: string) => void;
@@ -54,6 +181,9 @@ function OrderRow({
         style={{ transition: "background 150ms" }}
       >
         <Table.Td>
+          <Text size="xs" fw={500} c="dimmed">{index}</Text>
+        </Table.Td>
+        <Table.Td>
           <div className="flex items-center gap-2">
             {expanded ? <ChevronDown size={14} className="text-stone-400" /> : <ChevronRight size={14} className="text-stone-400" />}
             <Text size="xs" ff="monospace" fw={600} className="text-stone-700">{order.orderNumber}</Text>
@@ -65,19 +195,11 @@ function OrderRow({
         <Table.Td>
           <Text size="sm" fw={600} className="text-stone-700">{formatPrice(order.total)}</Text>
         </Table.Td>
-        <Table.Td>
-          <Badge color={PAYMENT_STATUS_COLORS[order.paymentStatus] || "gray"} size="sm">
-            {order.paymentStatus}
-          </Badge>
-        </Table.Td>
         <Table.Td onClick={(e) => e.stopPropagation()}>
-          <Select
+          <StatusCombobox
             value={order.status}
-            onChange={(val) => val && onStatusChange(val)}
-            data={STATUS_OPTIONS}
-            size="xs"
-            w={170}
-            allowDeselect={false}
+            onChange={onStatusChange}
+            disabled={order.status === "DELIVERED" || order.status === "CANCELLED"}
           />
         </Table.Td>
         <Table.Td>
@@ -125,6 +247,12 @@ function OrderRow({
                       <div className="flex items-center gap-2">
                         <Clock size={13} className="text-stone-400" />
                         <Text size="sm" className="text-stone-700">{order.deliverySlot}</Text>
+                      </div>
+                    )}
+                    {order.cardBrand && order.cardLast4 && (
+                      <div className="flex items-center gap-2">
+                        <CreditCard size={13} className="text-gray-400" />
+                        <Text size="sm" tt="capitalize">{order.cardBrand} ending in {order.cardLast4}</Text>
                       </div>
                     )}
                   </div>
@@ -229,24 +357,17 @@ export default function OrdersAdminPage() {
             <p className="text-sm text-stone-500">{pagination.total} total orders</p>
           )}
         </div>
-        <Select
-          value={filter}
-          onChange={setFilter}
-          data={FILTER_OPTIONS}
-          w={200}
-          placeholder="Filter by status"
-          allowDeselect={false}
-        />
+        <FilterCombobox value={filter || ""} onChange={(val) => setFilter(val || "")} />
       </div>
 
       <Card shadow="sm" radius="lg" withBorder p={0} className="border-stone-200 bg-white rounded-xl">
         <Table verticalSpacing="sm" horizontalSpacing="md">
           <Table.Thead>
             <Table.Tr className="bg-stone-50">
+              <Table.Th className="text-stone-600" w={50}>#</Table.Th>
               <Table.Th className="text-stone-600">Order</Table.Th>
               <Table.Th className="text-stone-600">Customer</Table.Th>
               <Table.Th className="text-stone-600">Total</Table.Th>
-              <Table.Th className="text-stone-600">Payment</Table.Th>
               <Table.Th className="text-stone-600">Status</Table.Th>
               <Table.Th className="text-stone-600">Date</Table.Th>
             </Table.Tr>
@@ -267,10 +388,11 @@ export default function OrdersAdminPage() {
                 </Table.Td>
               </Table.Tr>
             ) : (
-              orders.map((order) => (
+              orders.map((order, i) => (
                 <OrderRow
                   key={order.id}
                   order={order}
+                  index={(pagination.page - 1) * pagination.limit + i + 1}
                   expanded={expandedIds.has(order.id)}
                   onToggle={() => toggleExpand(order.id)}
                   onStatusChange={(status) => updateStatus(order.id, status)}

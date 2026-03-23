@@ -2,12 +2,12 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { ShoppingCart, Check } from "lucide-react";
+import { ShoppingCart } from "lucide-react";
 import { Button, Badge, Text, Group, Stack } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import { formatPrice } from "@/lib/utils";
 import { useLocalCart } from "@/hooks/use-cart";
-import { useState } from "react";
+
 
 type ProductCardProps = {
   id: string;
@@ -23,7 +23,6 @@ type ProductCardProps = {
 
 export function ProductCard({ id, name, slug, price, compareAtPrice, images, stock, unit, category }: ProductCardProps) {
   const { addItem } = useLocalCart();
-  const [justAdded, setJustAdded] = useState(false);
   const isOnSale = compareAtPrice && compareAtPrice > price;
   const discount = isOnSale ? Math.round((1 - price / compareAtPrice) * 100) : 0;
   const imageUrl = images[0] || "/placeholder-product.svg";
@@ -33,8 +32,6 @@ export function ProductCard({ id, name, slug, price, compareAtPrice, images, sto
     if (stock <= 0) return;
     addItem({ productId: id, name, price, image: imageUrl, unit, slug, stock });
     notifications.show({ message: `${name} added to cart`, color: "green" });
-    setJustAdded(true);
-    setTimeout(() => setJustAdded(false), 1500);
   };
 
   return (
@@ -65,16 +62,16 @@ export function ProductCard({ id, name, slug, price, compareAtPrice, images, sto
             {isOnSale && <Text size="sm" c="dimmed" td="line-through">{formatPrice(compareAtPrice)}</Text>}
           </Group>
           <Text size="xs" c="dimmed">{unit}</Text>
-          <div className="mt-1 transition-all duration-200 opacity-100 md:opacity-0 md:group-hover:opacity-100">
+          <div className="mt-1">
             <Button
               onClick={handleAddToCart}
               disabled={stock <= 0}
               size="sm"
               color="green"
               fullWidth
-              leftSection={justAdded ? <Check size={14} /> : <ShoppingCart size={14} />}
+              leftSection={<ShoppingCart size={14} />}
             >
-              {justAdded ? "Added!" : "Add to Cart"}
+              Add to Cart
             </Button>
           </div>
         </Stack>

@@ -5,7 +5,7 @@ import Link from "next/link";
 import { db } from "@/lib/db";
 import { ProductCard } from "@/components/store/product-card";
 import { CategoryFilters } from "./filters";
-import { Container, Title, Text, SimpleGrid, Group, Badge, Anchor, Breadcrumbs, Button } from "@mantine/core";
+import { Container, Title, Text, SimpleGrid, Group, Badge, Button } from "@mantine/core";
 
 type Props = {
   params: Promise<{ slug: string }>;
@@ -51,10 +51,11 @@ export default async function CategoryPage({ params, searchParams }: Props) {
 
   return (
     <Container size={1280} py="xl">
-      <Breadcrumbs mb="sm">
-        <Link href="/"><Anchor size="sm">Home</Anchor></Link>
-        <Text size="sm">{category.name}</Text>
-      </Breadcrumbs>
+      <Group gap={8} mb="sm">
+        <Link href="/" style={{ textDecoration: "none", color: "var(--mantine-color-green-6)" }}><Text size="sm">Home</Text></Link>
+        <Text size="sm" c="dimmed">/</Text>
+        <Text size="sm" c="dimmed">{category.name}</Text>
+      </Group>
       <Title order={1}>{category.name}</Title>
       <Text c="dimmed" mt={4}>{total} product{total !== 1 ? "s" : ""}</Text>
 

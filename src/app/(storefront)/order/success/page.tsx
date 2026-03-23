@@ -1,7 +1,7 @@
 import { db } from "@/lib/db";
 import { stripe } from "@/lib/stripe";
 import { formatPrice } from "@/lib/utils";
-import { CheckCircle, Package as PackageIcon } from "lucide-react";
+import { CheckCircle, Package as PackageIcon, CreditCard } from "lucide-react";
 import { Container, Button, Title, Text, Paper, Group, Stack, ThemeIcon } from "@mantine/core";
 import Link from "next/link";
 import { OrderSummary } from "@/components/store/order-summary";
@@ -18,9 +18,26 @@ async function verifyAndUpdatePayment(orderNumber: string) {
     try {
       const session = await stripe.checkout.sessions.retrieve(order.stripeSessionId);
       if (session.payment_status === "paid") {
-        await db.order.update({ where: { id: order.id }, data: { paymentStatus: "PAID", status: "PROCESSING" } });
+        // Retrieve card details from payment intent
+        let cardBrand: string | null = null;
+        let cardLast4: string | null = null;
+        let paymentIntentId: string | null = null;
+
+        if (session.payment_intent) {
+          paymentIntentId = typeof session.payment_intent === "string" ? session.payment_intent : session.payment_intent.id;
+          try {
+            const pi = await stripe.paymentIntents.retrieve(paymentIntentId, { expand: ["payment_method"] });
+            const pm = pi.payment_method;
+            if (pm && typeof pm !== "string" && pm.card) {
+              cardBrand = pm.card.brand;
+              cardLast4 = pm.card.last4;
+            }
+          } catch { /* card details retrieval failed */ }
+        }
+
+        await db.order.update({ where: { id: order.id }, data: { paymentStatus: "PAID", status: "PROCESSING", stripePaymentIntentId: paymentIntentId, cardBrand, cardLast4 } });
         for (const item of order.items) { await db.product.update({ where: { id: item.productId }, data: { stock: { decrement: item.quantity } } }); }
-        return { ...order, paymentStatus: "PAID", status: "PROCESSING" };
+        return { ...order, paymentStatus: "PAID", status: "PROCESSING", cardBrand, cardLast4 };
       }
     } catch { /* Stripe check failed */ }
   }
@@ -69,6 +86,16 @@ export default async function OrderSuccessPage({ searchParams }: Props) {
           ))}
         </Stack>
         <OrderSummary subtotal={order.subtotal} gst={order.gst} deliveryFee={order.deliveryFee} total={order.total} />
+
+        {order.cardBrand && order.cardLast4 && (
+          <>
+            <Text fw={500} mt="lg" mb={4}>Payment Method</Text>
+            <Group gap="xs">
+              <CreditCard size={16} className="text-gray-400" />
+              <Text size="sm" c="dimmed" tt="capitalize">{order.cardBrand} ending in {order.cardLast4}</Text>
+            </Group>
+          </>
+        )}
 
         <Text fw={500} mt="lg" mb={4}>Delivery Address</Text>
         <AddressDisplay address={address} />

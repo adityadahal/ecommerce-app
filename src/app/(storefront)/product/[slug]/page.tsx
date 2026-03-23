@@ -7,7 +7,7 @@ import { formatPrice } from "@/lib/utils";
 import { ProductCard } from "@/components/store/product-card";
 import { AddToCartButton } from "./add-to-cart";
 import { ProductImages } from "./product-images";
-import { Badge, Container, Title, Text, Group, Grid, Breadcrumbs, Anchor, Paper, SimpleGrid } from "@mantine/core";
+import { Badge, Container, Title, Text, Group, Paper, SimpleGrid } from "@mantine/core";
 
 type Props = { params: Promise<{ slug: string }> };
 
@@ -28,17 +28,19 @@ export default async function ProductPage({ params }: Props) {
 
   return (
     <Container size={1280} py="xl">
-      <Breadcrumbs mb="lg">
-        <Link href="/"><Anchor size="sm">Home</Anchor></Link>
-        <Link href={`/category/${product.category.slug}`}><Anchor size="sm">{product.category.name}</Anchor></Link>
-        <Text size="sm">{product.name}</Text>
-      </Breadcrumbs>
+      <Group gap={8} mb="lg">
+        <Link href="/" style={{ textDecoration: "none", color: "var(--mantine-color-green-6)" }}><Text size="sm">Home</Text></Link>
+        <Text size="sm" c="dimmed">/</Text>
+        <Link href={`/category/${product.category.slug}`} style={{ textDecoration: "none", color: "var(--mantine-color-green-6)" }}><Text size="sm">{product.category.name}</Text></Link>
+        <Text size="sm" c="dimmed">/</Text>
+        <Text size="sm" c="dimmed">{product.name}</Text>
+      </Group>
 
-      <Grid gutter="xl">
-        <Grid.Col span={{ base: 12, md: 6 }}>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div>
           <ProductImages images={product.images} name={product.name} />
-        </Grid.Col>
-        <Grid.Col span={{ base: 12, md: 6 }}>
+        </div>
+        <div>
           <Text size="sm" fw={500} c="green">{product.category.name}</Text>
           <Title order={1} mt={4}>{product.name}</Title>
 
@@ -71,8 +73,8 @@ export default async function ProductPage({ params }: Props) {
           )}
 
           <AddToCartButton id={product.id} name={product.name} price={product.price} image={product.images[0] || ""} unit={product.unit} slug={product.slug} stock={product.stock} />
-        </Grid.Col>
-      </Grid>
+        </div>
+      </div>
 
       {relatedProducts.length > 0 && (
         <>

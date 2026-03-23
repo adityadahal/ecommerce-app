@@ -3,7 +3,7 @@ export const dynamic = "force-dynamic";
 import { auth } from "@/lib/auth";
 import { db } from "@/lib/db";
 import { formatPrice } from "@/lib/utils";
-import { Badge, Title, Text, Group, Stack, Paper, Anchor } from "@mantine/core";
+import { Badge, Title, Text, Group, Stack, Paper } from "@mantine/core";
 import Link from "next/link";
 import { ORDER_STATUS_COLORS, PAYMENT_STATUS_COLORS } from "@/lib/constants";
 import { MapPin } from "lucide-react";
@@ -18,7 +18,7 @@ export default async function OrdersPage() {
       {orders.length === 0 ? (
         <Stack align="center" py="xl">
           <Text c="dimmed">No orders yet.</Text>
-          <Link href="/"><Anchor c="green">Start shopping</Anchor></Link>
+          <Link href="/" style={{ color: "var(--mantine-color-green-6)" }}>Start shopping</Link>
         </Stack>
       ) : (
         <Stack gap="sm">

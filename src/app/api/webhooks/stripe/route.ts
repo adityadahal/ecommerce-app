@@ -34,12 +34,32 @@ export async function POST(request: Request) {
         const existing = await db.order.findUnique({ where: { id: orderId } });
         if (!existing || existing.paymentStatus === "PAID") break;
 
-        // Update order payment status
+        // Retrieve card details from payment intent
+        let cardBrand: string | null = null;
+        let cardLast4: string | null = null;
+        let paymentIntentId: string | null = null;
+
+        if (session.payment_intent) {
+          paymentIntentId = typeof session.payment_intent === "string" ? session.payment_intent : session.payment_intent.id;
+          try {
+            const pi = await stripe.paymentIntents.retrieve(paymentIntentId, { expand: ["payment_method"] });
+            const pm = pi.payment_method;
+            if (pm && typeof pm !== "string" && pm.card) {
+              cardBrand = pm.card.brand;
+              cardLast4 = pm.card.last4;
+            }
+          } catch { /* card details retrieval failed, non-critical */ }
+        }
+
+        // Update order payment status + card details
         const order = await db.order.update({
           where: { id: orderId },
           data: {
             paymentStatus: "PAID",
             status: "PROCESSING",
+            stripePaymentIntentId: paymentIntentId,
+            cardBrand,
+            cardLast4,
           },
           include: { items: true },
         });

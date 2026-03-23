@@ -45,7 +45,9 @@ export async function POST(request: Request) {
           currency: "aud",
           product_data: {
             name: product.name,
-            images: product.images.length > 0 ? [product.images[0]] : undefined,
+            images: product.images.length > 0
+              ? [product.images[0].startsWith("http") ? product.images[0] : `${process.env.NEXT_PUBLIC_APP_URL}${product.images[0]}`]
+              : undefined,
           },
           unit_amount: Math.round(product.price * 100),
         },

@@ -22,6 +22,8 @@ export async function GET(request: Request) {
       deliveryAddress: true,
       deliverySlot: true,
       customerName: true,
+      cardBrand: true,
+      cardLast4: true,
       createdAt: true,
       items: {
         select: {
