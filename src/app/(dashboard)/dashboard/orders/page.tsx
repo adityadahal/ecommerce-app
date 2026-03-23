@@ -50,20 +50,20 @@ function OrderRow({
     <>
       <Table.Tr
         onClick={onToggle}
-        className="cursor-pointer"
+        className="cursor-pointer hover:bg-stone-50"
         style={{ transition: "background 150ms" }}
       >
         <Table.Td>
           <div className="flex items-center gap-2">
-            {expanded ? <ChevronDown size={14} className="text-gray-400" /> : <ChevronRight size={14} className="text-gray-400" />}
-            <Text size="xs" ff="monospace" fw={600}>{order.orderNumber}</Text>
+            {expanded ? <ChevronDown size={14} className="text-stone-400" /> : <ChevronRight size={14} className="text-stone-400" />}
+            <Text size="xs" ff="monospace" fw={600} className="text-stone-700">{order.orderNumber}</Text>
           </div>
         </Table.Td>
         <Table.Td>
-          <Text size="sm" fw={500}>{order.customerName || "Guest"}</Text>
+          <Text size="sm" fw={500} className="text-stone-700">{order.customerName || "Guest"}</Text>
         </Table.Td>
         <Table.Td>
-          <Text size="sm" fw={600}>{formatPrice(order.total)}</Text>
+          <Text size="sm" fw={600} className="text-stone-700">{formatPrice(order.total)}</Text>
         </Table.Td>
         <Table.Td>
           <Badge color={PAYMENT_STATUS_COLORS[order.paymentStatus] || "gray"} size="sm">
@@ -81,7 +81,7 @@ function OrderRow({
           />
         </Table.Td>
         <Table.Td>
-          <Text size="xs" c="dimmed">
+          <Text size="xs" className="text-stone-400">
             {new Date(order.createdAt).toLocaleDateString("en-AU", {
               day: "2-digit",
               month: "short",
@@ -95,71 +95,71 @@ function OrderRow({
       <Table.Tr style={{ borderBottom: expanded ? undefined : "none" }}>
         <Table.Td colSpan={6} p={0}>
           <Collapse in={expanded}>
-            <div className="px-6 py-4 bg-gray-50/50">
+            <div className="px-6 py-4 bg-stone-50/50">
               <div className="grid gap-4 md:grid-cols-3">
                 {/* Customer Info */}
-                <Card shadow="0" padding="sm" radius="md" withBorder>
-                  <Text size="xs" fw={600} c="dimmed" mb={8}>CUSTOMER DETAILS</Text>
+                <Card shadow="0" padding="sm" radius="lg" withBorder className="border-stone-200 bg-white rounded-xl">
+                  <Text size="xs" fw={600} className="text-stone-400" mb={8}>CUSTOMER DETAILS</Text>
                   <div className="space-y-2">
                     {order.customerPhone && (
                       <div className="flex items-center gap-2">
-                        <Phone size={13} className="text-gray-400" />
-                        <Text size="sm">{order.customerPhone}</Text>
+                        <Phone size={13} className="text-stone-400" />
+                        <Text size="sm" className="text-stone-700">{order.customerPhone}</Text>
                       </div>
                     )}
                     {order.customerEmail && (
                       <div className="flex items-center gap-2">
-                        <Mail size={13} className="text-gray-400" />
-                        <Text size="sm">{order.customerEmail}</Text>
+                        <Mail size={13} className="text-stone-400" />
+                        <Text size="sm" className="text-stone-700">{order.customerEmail}</Text>
                       </div>
                     )}
                     {order.deliveryAddress && (
                       <div className="flex items-start gap-2">
-                        <MapPin size={13} className="text-gray-400 mt-0.5" />
-                        <Text size="sm">
+                        <MapPin size={13} className="text-stone-400 mt-0.5" />
+                        <Text size="sm" className="text-stone-700">
                           {order.deliveryAddress.street}, {order.deliveryAddress.suburb} {order.deliveryAddress.state} {order.deliveryAddress.postcode}
                         </Text>
                       </div>
                     )}
                     {order.deliverySlot && (
                       <div className="flex items-center gap-2">
-                        <Clock size={13} className="text-gray-400" />
-                        <Text size="sm">{order.deliverySlot}</Text>
+                        <Clock size={13} className="text-stone-400" />
+                        <Text size="sm" className="text-stone-700">{order.deliverySlot}</Text>
                       </div>
                     )}
                   </div>
                 </Card>
 
                 {/* Order Items */}
-                <Card shadow="0" padding="sm" radius="md" withBorder className="md:col-span-2">
-                  <Text size="xs" fw={600} c="dimmed" mb={8}>ORDER ITEMS ({order.items.length})</Text>
+                <Card shadow="0" padding="sm" radius="lg" withBorder className="md:col-span-2 border-stone-200 bg-white rounded-xl">
+                  <Text size="xs" fw={600} className="text-stone-400" mb={8}>ORDER ITEMS ({order.items.length})</Text>
                   <div className="space-y-1.5">
                     {order.items.map((item) => (
                       <div key={item.id} className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                          <Package size={13} className="text-gray-400" />
-                          <Text size="sm">{item.name}</Text>
+                          <Package size={13} className="text-stone-400" />
+                          <Text size="sm" className="text-stone-700">{item.name}</Text>
                           <Badge size="xs" variant="light" color="gray">x{item.quantity}</Badge>
                         </div>
-                        <Text size="sm" fw={500}>{formatPrice(item.price * item.quantity)}</Text>
+                        <Text size="sm" fw={500} className="text-stone-700">{formatPrice(item.price * item.quantity)}</Text>
                       </div>
                     ))}
-                    <div className="border-t mt-2 pt-2 space-y-1">
+                    <div className="border-t border-stone-200 mt-2 pt-2 space-y-1">
                       <div className="flex justify-between">
-                        <Text size="xs" c="dimmed">Subtotal</Text>
-                        <Text size="xs">{formatPrice(order.subtotal)}</Text>
+                        <Text size="xs" className="text-stone-400">Subtotal</Text>
+                        <Text size="xs" className="text-stone-700">{formatPrice(order.subtotal)}</Text>
                       </div>
                       <div className="flex justify-between">
-                        <Text size="xs" c="dimmed">Delivery</Text>
-                        <Text size="xs">{order.deliveryFee === 0 ? "FREE" : formatPrice(order.deliveryFee)}</Text>
+                        <Text size="xs" className="text-stone-400">Delivery</Text>
+                        <Text size="xs" className="text-stone-700">{order.deliveryFee === 0 ? "FREE" : formatPrice(order.deliveryFee)}</Text>
                       </div>
                       <div className="flex justify-between">
-                        <Text size="xs" c="dimmed">GST (incl.)</Text>
-                        <Text size="xs">{formatPrice(order.gst)}</Text>
+                        <Text size="xs" className="text-stone-400">GST (incl.)</Text>
+                        <Text size="xs" className="text-stone-700">{formatPrice(order.gst)}</Text>
                       </div>
-                      <div className="flex justify-between border-t pt-1">
-                        <Text size="sm" fw={700}>Total</Text>
-                        <Text size="sm" fw={700}>{formatPrice(order.total)}</Text>
+                      <div className="flex justify-between border-t border-stone-200 pt-1">
+                        <Text size="sm" fw={700} className="text-stone-900">Total</Text>
+                        <Text size="sm" fw={700} className="text-stone-900">{formatPrice(order.total)}</Text>
                       </div>
                     </div>
                   </div>
@@ -224,9 +224,9 @@ export default function OrdersAdminPage() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <div>
-          <Text size="xl" fw={700}>Orders</Text>
+          <h1 className="text-2xl font-bold text-stone-900">Orders</h1>
           {!loading && (
-            <Text size="sm" c="dimmed">{pagination.total} total orders</Text>
+            <p className="text-sm text-stone-500">{pagination.total} total orders</p>
           )}
         </div>
         <Select
@@ -239,16 +239,16 @@ export default function OrdersAdminPage() {
         />
       </div>
 
-      <Card shadow="sm" radius="md" withBorder p={0}>
-        <Table verticalSpacing="sm" horizontalSpacing="md" highlightOnHover>
+      <Card shadow="sm" radius="lg" withBorder p={0} className="border-stone-200 bg-white rounded-xl">
+        <Table verticalSpacing="sm" horizontalSpacing="md">
           <Table.Thead>
-            <Table.Tr>
-              <Table.Th>Order</Table.Th>
-              <Table.Th>Customer</Table.Th>
-              <Table.Th>Total</Table.Th>
-              <Table.Th>Payment</Table.Th>
-              <Table.Th>Status</Table.Th>
-              <Table.Th>Date</Table.Th>
+            <Table.Tr className="bg-stone-50">
+              <Table.Th className="text-stone-600">Order</Table.Th>
+              <Table.Th className="text-stone-600">Customer</Table.Th>
+              <Table.Th className="text-stone-600">Total</Table.Th>
+              <Table.Th className="text-stone-600">Payment</Table.Th>
+              <Table.Th className="text-stone-600">Status</Table.Th>
+              <Table.Th className="text-stone-600">Date</Table.Th>
             </Table.Tr>
           </Table.Thead>
           <Table.Tbody>
@@ -263,7 +263,7 @@ export default function OrdersAdminPage() {
             ) : orders.length === 0 ? (
               <Table.Tr>
                 <Table.Td colSpan={6}>
-                  <Text ta="center" py="xl" c="dimmed">No orders found</Text>
+                  <Text ta="center" py="xl" className="text-stone-400">No orders found</Text>
                 </Table.Td>
               </Table.Tr>
             ) : (
@@ -284,7 +284,7 @@ export default function OrdersAdminPage() {
       {/* Pagination */}
       {pagination.totalPages > 1 && (
         <div className="mt-4 flex items-center justify-between">
-          <Text size="sm" c="dimmed">
+          <Text size="sm" className="text-stone-500">
             Showing {(pagination.page - 1) * pagination.limit + 1}-{Math.min(pagination.page * pagination.limit, pagination.total)} of {pagination.total}
           </Text>
           <div className="flex gap-2">

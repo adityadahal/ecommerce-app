@@ -28,25 +28,25 @@ export function AddToCartButton({ id, name, price, image, unit, slug, stock }: P
   return (
     <div className="mt-6 space-y-4">
       <div className="flex items-center gap-4">
-        <div className="flex items-center rounded-md border">
+        <div className="flex items-center rounded-lg border border-stone-200 bg-stone-50">
           <button
             onClick={() => setQuantity(Math.max(1, quantity - 1))}
-            className="px-3 py-2 hover:bg-accent active:scale-90 transition-transform duration-100"
+            className="px-3 py-2.5 hover:bg-stone-100 rounded-l-lg active:scale-90 transition-all duration-100"
             disabled={quantity <= 1}
           >
             <Minus size={16} />
           </button>
-          <span key={quantity} className="qty-value px-4 py-2 font-medium">{quantity}</span>
+          <span key={quantity} className="qty-value px-4 py-2.5 font-semibold text-stone-800">{quantity}</span>
           <button
             onClick={() => setQuantity(Math.min(stock, quantity + 1))}
-            className="px-3 py-2 hover:bg-accent active:scale-90 transition-transform duration-100"
+            className="px-3 py-2.5 hover:bg-stone-100 rounded-r-lg active:scale-90 transition-all duration-100"
             disabled={quantity >= stock}
           >
             <Plus size={16} />
           </button>
         </div>
       </div>
-      <Button onClick={handleAdd} disabled={stock <= 0} size="lg" color="green" leftSection={<ShoppingCart size={18} />} className="w-full md:w-auto">
+      <Button onClick={handleAdd} disabled={stock <= 0} size="lg" color="green" leftSection={<ShoppingCart size={18} />} className="w-full md:w-auto shadow-sm">
         Add to Cart
       </Button>
     </div>

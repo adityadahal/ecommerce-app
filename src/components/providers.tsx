@@ -6,8 +6,44 @@ import { Notifications } from "@mantine/notifications";
 
 const theme = createTheme({
   primaryColor: "green",
-  fontFamily: "system-ui, -apple-system, sans-serif",
+  fontFamily: "var(--font-sans, system-ui, -apple-system, sans-serif)",
   defaultRadius: "md",
+  headings: {
+    fontWeight: "700",
+    fontFamily: "var(--font-sans, system-ui, -apple-system, sans-serif)",
+  },
+  components: {
+    Button: {
+      defaultProps: {
+        radius: "md",
+      },
+    },
+    Card: {
+      defaultProps: {
+        radius: "lg",
+      },
+    },
+    TextInput: {
+      defaultProps: {
+        radius: "md",
+      },
+    },
+    PasswordInput: {
+      defaultProps: {
+        radius: "md",
+      },
+    },
+    NativeSelect: {
+      defaultProps: {
+        radius: "md",
+      },
+    },
+    Badge: {
+      defaultProps: {
+        radius: "xl",
+      },
+    },
+  },
 });
 
 export function Providers({ children }: { children: React.ReactNode }) {

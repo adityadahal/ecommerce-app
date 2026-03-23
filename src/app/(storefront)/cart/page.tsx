@@ -2,12 +2,13 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { Button } from "@mantine/core";
+import { Container, Button, Title, Text, Group, Stack, Paper, Grid, Skeleton, ThemeIcon } from "@mantine/core";
 import { Minus, Plus, Trash2, ShoppingCart, ArrowRight } from "lucide-react";
 import { useLocalCart } from "@/hooks/use-cart";
 import { formatPrice, calculateGST } from "@/lib/utils";
 import { OrderSummary } from "@/components/store/order-summary";
 import { FREE_DELIVERY_THRESHOLD, DEFAULT_DELIVERY_FEE } from "@/lib/constants";
+import { ActionIcon } from "@mantine/core";
 
 export default function CartPage() {
   const { items, isLoaded, updateQuantity, removeItem, subtotal } = useLocalCart();
@@ -17,88 +18,83 @@ export default function CartPage() {
 
   if (!isLoaded) {
     return (
-      <div className="mx-auto max-w-4xl px-4 py-8">
-        <h1 className="text-3xl font-bold">Shopping Cart</h1>
-        <div className="mt-8 animate-pulse space-y-4">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="h-24 rounded-lg bg-gray-100" />
-          ))}
-        </div>
-      </div>
+      <Container size={900} py="xl">
+        <Title order={1}>Shopping Cart</Title>
+        <Stack mt="lg" gap="md">
+          {[1, 2, 3].map((i) => <Skeleton key={i} height={96} radius="lg" />)}
+        </Stack>
+      </Container>
     );
   }
 
   if (items.length === 0) {
     return (
-      <div className="mx-auto max-w-4xl px-4 py-16 text-center">
-        <ShoppingCart className="float-animation mx-auto text-muted-foreground" size={64} />
-        <h1 className="mt-4 text-2xl font-bold">Your cart is empty</h1>
-        <p className="mt-2 text-muted-foreground">Add some items to get started</p>
-        <Link href="/" className="mt-6 inline-block">
-          <Button color="green">Continue Shopping</Button>
-        </Link>
-      </div>
+      <Container size={900} py={60} ta="center">
+        <ThemeIcon color="gray" size={80} radius="xl" variant="light" mx="auto" className="float-animation">
+          <ShoppingCart size={36} />
+        </ThemeIcon>
+        <Title order={2} mt="lg">Your cart is empty</Title>
+        <Text c="dimmed" mt="xs">Add some items to get started</Text>
+        <Button component={Link} href="/" color="green" size="md" mt="lg" rightSection={<ArrowRight size={16} />}>
+          Continue Shopping
+        </Button>
+      </Container>
     );
   }
 
   return (
-    <div className="mx-auto max-w-4xl px-4 py-8">
-      <h1 className="text-3xl font-bold">Shopping Cart</h1>
+    <Container size={900} py="xl">
+      <Title order={1}>Shopping Cart</Title>
+      <Text c="dimmed" mt={4}>{items.length} item{items.length > 1 ? "s" : ""} in your cart</Text>
 
-      <div className="mt-8 grid gap-8 lg:grid-cols-3">
-        <div className="lg:col-span-2 space-y-4">
-          {items.map((item) => (
-            <div key={item.productId} className="flex gap-4 rounded-lg border p-4 transition-all duration-200">
-              <Link href={`/product/${item.slug}`} className="relative h-20 w-20 shrink-0 overflow-hidden rounded-md bg-gray-100">
-                <Image src={item.image || "/placeholder-product.svg"} alt={item.name} fill className="object-cover" sizes="80px" />
-              </Link>
-              <div className="flex-1">
-                <Link href={`/product/${item.slug}`} className="font-medium hover:text-primary">
-                  {item.name}
-                </Link>
-                <p className="text-sm text-muted-foreground">{item.unit}</p>
-                <p className="mt-1 font-bold text-primary">{formatPrice(item.price)}</p>
-              </div>
-              <div className="flex flex-col items-end gap-2">
-                <button onClick={() => removeItem(item.productId)} className="text-muted-foreground hover:text-red-600">
-                  <Trash2 size={16} />
-                </button>
-                <div className="flex items-center rounded-md border">
-                  <button
-                    onClick={() => updateQuantity(item.productId, item.quantity - 1)}
-                    className="px-2 py-1 hover:bg-accent active:scale-90 transition-transform duration-100"
-                  >
-                    <Minus size={14} />
-                  </button>
-                  <span key={item.quantity} className="qty-value px-3 py-1 text-sm font-medium">{item.quantity}</span>
-                  <button
-                    onClick={() => updateQuantity(item.productId, Math.min(item.stock, item.quantity + 1))}
-                    className="px-2 py-1 hover:bg-accent active:scale-90 transition-transform duration-100"
-                  >
-                    <Plus size={14} />
-                  </button>
-                </div>
-                <span className="text-sm font-medium">{formatPrice(item.price * item.quantity)}</span>
-              </div>
-            </div>
-          ))}
-        </div>
+      <Grid mt="lg" gutter="lg">
+        <Grid.Col span={{ base: 12, lg: 8 }}>
+          <Stack gap="sm">
+            {items.map((item) => (
+              <Paper key={item.productId} p="md" radius="lg" withBorder>
+                <Group wrap="nowrap" gap="md">
+                  <Link href={`/product/${item.slug}`} className="relative shrink-0 overflow-hidden" style={{ width: 80, height: 80, borderRadius: "var(--mantine-radius-md)", background: "var(--mantine-color-gray-1)" }}>
+                    <Image src={item.image || "/placeholder-product.svg"} alt={item.name} fill className="object-cover" sizes="80px" />
+                  </Link>
+                  <Stack gap={2} style={{ flex: 1 }}>
+                    <Text fw={600} component={Link} href={`/product/${item.slug}`} className="hover:underline">{item.name}</Text>
+                    <Text size="sm" c="dimmed">{item.unit}</Text>
+                    <Text fw={700} c="green.7">{formatPrice(item.price)}</Text>
+                  </Stack>
+                  <Stack align="flex-end" gap="xs">
+                    <ActionIcon variant="subtle" color="red" size="sm" onClick={() => removeItem(item.productId)}>
+                      <Trash2 size={16} />
+                    </ActionIcon>
+                    <Group gap={0} style={{ border: "1px solid var(--mantine-color-gray-3)", borderRadius: "var(--mantine-radius-md)", background: "var(--mantine-color-gray-0)" }}>
+                      <ActionIcon variant="subtle" color="gray" size="sm" onClick={() => updateQuantity(item.productId, item.quantity - 1)}>
+                        <Minus size={14} />
+                      </ActionIcon>
+                      <Text key={item.quantity} size="sm" fw={600} px="sm" className="qty-value">{item.quantity}</Text>
+                      <ActionIcon variant="subtle" color="gray" size="sm" onClick={() => updateQuantity(item.productId, Math.min(item.stock, item.quantity + 1))}>
+                        <Plus size={14} />
+                      </ActionIcon>
+                    </Group>
+                    <Text size="sm" fw={600}>{formatPrice(item.price * item.quantity)}</Text>
+                  </Stack>
+                </Group>
+              </Paper>
+            ))}
+          </Stack>
+        </Grid.Col>
 
-        <div className="rounded-lg border bg-gray-50 p-6 h-fit">
-          <h2 className="text-lg font-semibold">Order Summary</h2>
-          <div className="mt-4">
+        <Grid.Col span={{ base: 12, lg: 4 }}>
+          <Paper p="lg" radius="lg" withBorder shadow="sm" pos={{ lg: "sticky" }} top={{ lg: 80 }}>
+            <Title order={3} mb="md">Order Summary</Title>
             <OrderSummary subtotal={subtotal} gst={gst} deliveryFee={deliveryFee} total={total} showFreeDeliveryHint />
-          </div>
-          <Link href="/checkout" className="mt-6 block">
-            <Button color="green" fullWidth size="lg" rightSection={<ArrowRight size={16} />}>
+            <Button component={Link} href="/checkout" color="green" fullWidth size="lg" mt="lg" rightSection={<ArrowRight size={16} />}>
               Checkout
             </Button>
-          </Link>
-          <Link href="/" className="mt-2 block text-center text-sm text-muted-foreground hover:text-primary">
-            Continue Shopping
-          </Link>
-        </div>
-      </div>
-    </div>
+            <Text component={Link} href="/" size="sm" c="dimmed" ta="center" display="block" mt="sm" className="hover:underline">
+              Continue Shopping
+            </Text>
+          </Paper>
+        </Grid.Col>
+      </Grid>
+    </Container>
   );
 }

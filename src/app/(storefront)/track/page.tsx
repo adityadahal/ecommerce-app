@@ -1,25 +1,18 @@
 "use client";
 
 import { useState } from "react";
-import { Button, TextInput } from "@mantine/core";
+import { Container, Button, TextInput, Title, Text, Paper, Group, Stack, ThemeIcon, Alert } from "@mantine/core";
 import { formatPrice } from "@/lib/utils";
 import { OrderSummary } from "@/components/store/order-summary";
 import { AddressDisplay } from "@/components/store/address-display";
 import { ORDER_STATUS_STEPS } from "@/lib/constants";
-import { Search, XCircle } from "lucide-react";
+import { Search, XCircle, Package } from "lucide-react";
 
 type OrderData = {
-  orderNumber: string;
-  status: string;
-  paymentStatus: string;
-  subtotal: number;
-  deliveryFee: number;
-  gst: number;
-  total: number;
+  orderNumber: string; status: string; paymentStatus: string;
+  subtotal: number; deliveryFee: number; gst: number; total: number;
   deliveryAddress: { street: string; suburb: string; state: string; postcode: string };
-  deliverySlot: string | null;
-  customerName: string | null;
-  createdAt: string;
+  deliverySlot: string | null; customerName: string | null; createdAt: string;
   items: { id: string; name: string; price: number; quantity: number }[];
 };
 
@@ -32,21 +25,12 @@ export default function TrackOrderPage() {
   const handleTrack = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!orderNumber.trim()) return;
-    setLoading(true);
-    setError("");
-    setOrder(null);
-
+    setLoading(true); setError(""); setOrder(null);
     try {
       const res = await fetch(`/api/orders/track?order=${encodeURIComponent(orderNumber.trim())}`);
-      if (res.ok) {
-        const data = await res.json();
-        setOrder(data);
-      } else {
-        setError("Order not found. Please check your order number.");
-      }
-    } catch {
-      setError("Something went wrong. Please try again.");
-    }
+      if (res.ok) setOrder(await res.json());
+      else setError("Order not found. Please check your order number.");
+    } catch { setError("Something went wrong. Please try again."); }
     setLoading(false);
   };
 
@@ -54,63 +38,48 @@ export default function TrackOrderPage() {
   const currentStepIndex = ORDER_STATUS_STEPS.findIndex((s) => s.key === order?.status);
 
   return (
-    <div className="mx-auto max-w-2xl px-4 py-12">
-      <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold">Track Your Order</h1>
-        <p className="text-muted-foreground mt-2">Enter your order number to see the latest status</p>
-      </div>
+    <Container size={680} py="xl">
+      <Stack align="center" mb="xl">
+        <ThemeIcon color="green" size={64} radius="xl" variant="light">
+          <Package size={28} />
+        </ThemeIcon>
+        <Title order={1} ta="center">Track Your Order</Title>
+        <Text c="dimmed" ta="center">Enter your order number to see the latest status</Text>
+      </Stack>
 
-      <form onSubmit={handleTrack} className="flex gap-2">
-        <TextInput
-          value={orderNumber}
-          onChange={(e) => setOrderNumber(e.currentTarget.value)}
-          placeholder="Enter order number (e.g. MVM-L5K2F-A3B1)"
-          className="flex-1"
-        />
-        <Button type="submit" disabled={loading} color="green" leftSection={<Search size={16} />}>
-          {loading ? "Searching..." : "Track"}
-        </Button>
+      <form onSubmit={handleTrack}>
+        <Group gap="sm">
+          <TextInput value={orderNumber} onChange={(e) => setOrderNumber(e.currentTarget.value)} placeholder="Enter order number (e.g. MVM-L5K2F-A3B1)" style={{ flex: 1 }} size="md" />
+          <Button type="submit" disabled={loading} color="green" size="md" leftSection={<Search size={16} />}>
+            {loading ? "Searching..." : "Track"}
+          </Button>
+        </Group>
       </form>
 
-      {error && (
-        <div className="mt-6 rounded-lg bg-red-50 p-4 text-center text-sm text-red-600">
-          {error}
-        </div>
-      )}
+      {error && <Alert color="red" variant="light" mt="lg">{error}</Alert>}
 
       {order && (
-        <div className="mt-8 space-y-6">
-          {/* Order header */}
-          <div className="rounded-lg border p-6">
-            <div className="flex items-center justify-between">
+        <Stack mt="xl" gap="md">
+          <Paper p="lg" radius="lg" withBorder>
+            <Group justify="space-between">
               <div>
-                <p className="text-sm text-muted-foreground">Order Number</p>
-                <p className="text-xl font-mono font-bold">{order.orderNumber}</p>
+                <Text size="sm" c="dimmed">Order Number</Text>
+                <Text size="xl" fw={700} ff="monospace">{order.orderNumber}</Text>
               </div>
-              <div className="text-right">
-                <p className="text-sm text-muted-foreground">Placed on</p>
-                <p className="font-medium">
-                  {new Date(order.createdAt).toLocaleDateString("en-AU", {
-                    day: "numeric",
-                    month: "long",
-                    year: "numeric",
-                  })}
-                </p>
+              <div style={{ textAlign: "right" }}>
+                <Text size="sm" c="dimmed">Placed on</Text>
+                <Text fw={500}>{new Date(order.createdAt).toLocaleDateString("en-AU", { day: "numeric", month: "long", year: "numeric" })}</Text>
               </div>
-            </div>
-            {order.customerName && (
-              <p className="mt-2 text-sm text-muted-foreground">Customer: {order.customerName}</p>
-            )}
-          </div>
+            </Group>
+            {order.customerName && <Text size="sm" c="dimmed" mt="xs">Customer: {order.customerName}</Text>}
+          </Paper>
 
-          {/* Status tracker */}
-          <div className="rounded-lg border p-6">
-            <h2 className="font-semibold mb-6">Order Status</h2>
+          <Paper p="lg" radius="lg" withBorder>
+            <Text fw={600} mb="md">Order Status</Text>
             {isCancelled ? (
-              <div className="flex items-center gap-3 text-red-600">
-                <XCircle size={24} />
-                <span className="font-medium text-lg">Order Cancelled</span>
-              </div>
+              <Alert color="red" variant="light" icon={<XCircle size={20} />}>
+                <Text fw={500} size="lg">Order Cancelled</Text>
+              </Alert>
             ) : (
               <div className="flex items-center">
                 {ORDER_STATUS_STEPS.map((step, i) => {
@@ -121,21 +90,23 @@ export default function TrackOrderPage() {
                   return (
                     <div key={step.key} className="flex items-center flex-1 last:flex-initial">
                       <div className="flex flex-col items-center gap-2">
-                        <div className={`flex h-10 w-10 items-center justify-center rounded-full transition-all duration-300 ${
-                          isComplete ? "bg-primary text-white" : "bg-gray-200 text-gray-400"
-                        } ${isCurrent ? "ring-2 ring-primary ring-offset-2 step-active-pulse" : ""}`}>
+                        <ThemeIcon
+                          color={isComplete ? "green" : "gray"}
+                          variant={isComplete ? "filled" : "light"}
+                          size="lg"
+                          radius="xl"
+                          className={isCurrent ? "step-active-pulse" : ""}
+                          style={isCurrent ? { ring: "2px solid var(--mantine-color-green-6)", ringOffset: "2px" } : undefined}
+                        >
                           <StepIcon size={18} />
-                        </div>
-                        <span className={`text-xs text-center ${isComplete ? "font-medium text-primary" : "text-muted-foreground"}`}>
+                        </ThemeIcon>
+                        <Text size="xs" ta="center" c={isComplete ? "green" : "dimmed"} fw={isComplete ? 500 : 400}>
                           {step.label}
-                        </span>
+                        </Text>
                       </div>
                       {i < ORDER_STATUS_STEPS.length - 1 && (
-                        <div className="flex-1 h-0.5 bg-gray-200 relative overflow-hidden mx-2 self-start mt-5">
-                          <div
-                            className="absolute inset-0 bg-primary transition-transform duration-700 origin-left"
-                            style={{ transform: isLineComplete ? 'scaleX(1)' : 'scaleX(0)' }}
-                          />
+                        <div className="flex-1 mx-2 self-start mt-5" style={{ height: 2, background: "var(--mantine-color-gray-3)", position: "relative", overflow: "hidden" }}>
+                          <div style={{ position: "absolute", inset: 0, background: "var(--mantine-color-green-6)", transformOrigin: "left", transform: isLineComplete ? "scaleX(1)" : "scaleX(0)", transition: "transform 0.7s" }} />
                         </div>
                       )}
                     </div>
@@ -143,34 +114,28 @@ export default function TrackOrderPage() {
                 })}
               </div>
             )}
-          </div>
+          </Paper>
 
-          {/* Order details */}
-          <div className="rounded-lg border p-6">
-            <h2 className="font-semibold mb-4">Order Details</h2>
-            <div className="space-y-2">
+          <Paper p="lg" radius="lg" withBorder>
+            <Text fw={600} mb="sm">Order Details</Text>
+            <Stack gap="xs">
               {order.items.map((item) => (
-                <div key={item.id} className="flex justify-between text-sm">
-                  <span>{item.name} x {item.quantity}</span>
-                  <span>{formatPrice(item.price * item.quantity)}</span>
-                </div>
+                <Group key={item.id} justify="space-between">
+                  <Text size="sm" c="dimmed">{item.name} x {item.quantity}</Text>
+                  <Text size="sm" fw={500}>{formatPrice(item.price * item.quantity)}</Text>
+                </Group>
               ))}
-              <div className="border-t pt-2 mt-2">
-                <OrderSummary subtotal={order.subtotal} gst={order.gst} deliveryFee={order.deliveryFee} total={order.total} />
-              </div>
-            </div>
-          </div>
+            </Stack>
+            <OrderSummary subtotal={order.subtotal} gst={order.gst} deliveryFee={order.deliveryFee} total={order.total} />
+          </Paper>
 
-          {/* Delivery info */}
-          <div className="rounded-lg border p-6">
-            <h2 className="font-semibold mb-2">Delivery</h2>
+          <Paper p="lg" radius="lg" withBorder>
+            <Text fw={600} mb="xs">Delivery</Text>
             <AddressDisplay address={order.deliveryAddress} multiline />
-            {order.deliverySlot && (
-              <p className="text-sm text-muted-foreground mt-2">Time slot: {order.deliverySlot}</p>
-            )}
-          </div>
-        </div>
+            {order.deliverySlot && <Text size="sm" c="dimmed" mt="xs">Time slot: {order.deliverySlot}</Text>}
+          </Paper>
+        </Stack>
       )}
-    </div>
+    </Container>
   );
 }

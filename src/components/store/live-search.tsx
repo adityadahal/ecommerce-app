@@ -1,9 +1,8 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
-import Link from "next/link";
 import { Search, Loader2 } from "lucide-react";
 import { TextInput, Transition } from "@mantine/core";
 import { formatPrice } from "@/lib/utils";
@@ -118,23 +117,23 @@ export function LiveSearch() {
           onFocus={() => results.length > 0 && setIsOpen(true)}
           onKeyDown={handleKeyDown}
           placeholder="Search products..."
-          leftSection={<Search size={16} />}
-          rightSection={loading ? <Loader2 className="animate-spin text-muted-foreground" size={16} /> : undefined}
+          leftSection={<Search size={16} className="text-stone-400" />}
+          rightSection={loading ? <Loader2 className="animate-spin text-stone-400" size={16} /> : undefined}
         />
       </form>
 
       <Transition mounted={isOpen && results.length > 0} transition="fade" duration={150}>
         {(styles) => (
-          <div style={styles} className="absolute top-full left-0 right-0 z-50 mt-1 max-h-96 overflow-auto rounded-lg border bg-white shadow-lg">
+          <div style={styles} className="absolute top-full left-0 right-0 z-50 mt-1.5 max-h-96 overflow-auto rounded-xl border border-stone-200 bg-white shadow-xl">
             {results.map((product, index) => (
               <button
                 key={product.id}
                 onClick={() => handleSelect(product.slug)}
-                className={`flex w-full items-center gap-3 px-4 py-3 text-left hover:bg-accent transition-colors ${
-                  index === highlightedIndex ? "bg-accent" : ""
+                className={`flex w-full items-center gap-3 px-4 py-3 text-left transition-colors ${
+                  index === highlightedIndex ? "bg-stone-50" : "hover:bg-stone-50"
                 }`}
               >
-                <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded bg-gray-100">
+                <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-lg bg-stone-100">
                   <Image
                     src={product.images[0] || "/placeholder-product.svg"}
                     alt={product.name}
@@ -144,10 +143,10 @@ export function LiveSearch() {
                   />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium truncate">{product.name}</p>
-                  <p className="text-xs text-muted-foreground">{product.category.name}</p>
+                  <p className="text-sm font-medium text-stone-800 truncate">{product.name}</p>
+                  <p className="text-xs text-stone-400">{product.category.name}</p>
                 </div>
-                <div className="text-sm font-bold text-primary shrink-0">
+                <div className="text-sm font-bold text-emerald-600 shrink-0">
                   {formatPrice(product.price)}
                 </div>
               </button>
@@ -157,7 +156,7 @@ export function LiveSearch() {
                 setIsOpen(false);
                 router.push(`/search?q=${encodeURIComponent(query.trim())}`);
               }}
-              className="w-full border-t px-4 py-2.5 text-center text-sm text-primary hover:bg-accent"
+              className="w-full border-t border-stone-100 px-4 py-2.5 text-center text-sm font-medium text-emerald-600 hover:bg-stone-50 transition-colors"
             >
               View all results
             </button>
@@ -167,8 +166,8 @@ export function LiveSearch() {
 
       <Transition mounted={isOpen && debouncedQuery.length >= 2 && results.length === 0 && !loading} transition="fade" duration={150}>
         {(styles) => (
-          <div style={styles} className="absolute top-full left-0 right-0 z-50 mt-1 rounded-lg border bg-white p-4 shadow-lg">
-            <p className="text-sm text-muted-foreground text-center">No products found</p>
+          <div style={styles} className="absolute top-full left-0 right-0 z-50 mt-1.5 rounded-xl border border-stone-200 bg-white p-4 shadow-xl">
+            <p className="text-sm text-stone-500 text-center">No products found</p>
           </div>
         )}
       </Transition>

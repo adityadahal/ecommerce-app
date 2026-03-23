@@ -53,35 +53,35 @@ export default function CategoriesAdminPage() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <div>
-          <Text size="xl" fw={700}>Categories</Text>
-          <Text size="sm" c="dimmed">{rootCategories.length} categories</Text>
+          <h1 className="text-2xl font-bold text-stone-900">Categories</h1>
+          <p className="text-sm text-stone-500">{rootCategories.length} categories</p>
         </div>
         <Button color="green" leftSection={<Plus size={16} />} onClick={openCreate}>Add Category</Button>
       </div>
 
-      <Card shadow="sm" radius="md" withBorder p={0}>
+      <Card shadow="sm" radius="lg" withBorder p={0} className="border-stone-200 bg-white rounded-xl">
         <Table verticalSpacing="sm" horizontalSpacing="md">
           <Table.Thead>
-            <Table.Tr>
-              <Table.Th>Category</Table.Th>
-              <Table.Th>Slug</Table.Th>
-              <Table.Th>Products</Table.Th>
-              <Table.Th>Subcategories</Table.Th>
-              <Table.Th>Actions</Table.Th>
+            <Table.Tr className="bg-stone-50">
+              <Table.Th className="text-stone-600">Category</Table.Th>
+              <Table.Th className="text-stone-600">Slug</Table.Th>
+              <Table.Th className="text-stone-600">Products</Table.Th>
+              <Table.Th className="text-stone-600">Subcategories</Table.Th>
+              <Table.Th className="text-stone-600">Actions</Table.Th>
             </Table.Tr>
           </Table.Thead>
           <Table.Tbody>
             {rootCategories.map((cat) => (
-              <Table.Tr key={cat.id}>
+              <Table.Tr key={cat.id} className="hover:bg-stone-50">
                 <Table.Td>
-                  <Text size="sm" fw={500}>
+                  <Text size="sm" fw={500} className="text-stone-700">
                     {cat.image && <span className="mr-2">{cat.image}</span>}
                     {cat.name}
                   </Text>
                 </Table.Td>
-                <Table.Td><Text size="sm" c="dimmed">{cat.slug}</Text></Table.Td>
-                <Table.Td><Text size="sm">{cat._count.products}</Text></Table.Td>
-                <Table.Td><Text size="sm">{cat.children.length > 0 ? cat.children.map((c) => c.name).join(", ") : "-"}</Text></Table.Td>
+                <Table.Td><Text size="sm" className="text-stone-400">{cat.slug}</Text></Table.Td>
+                <Table.Td><Text size="sm" className="text-stone-700">{cat._count.products}</Text></Table.Td>
+                <Table.Td><Text size="sm" className="text-stone-700">{cat.children.length > 0 ? cat.children.map((c) => c.name).join(", ") : "-"}</Text></Table.Td>
                 <Table.Td>
                   <div className="flex gap-2">
                     <Button color="blue" size="compact-sm" leftSection={<Pencil size={14} />} onClick={() => openEdit(cat)}>Edit</Button>
@@ -93,7 +93,7 @@ export default function CategoriesAdminPage() {
             {rootCategories.length === 0 && (
               <Table.Tr>
                 <Table.Td colSpan={5}>
-                  <Text ta="center" py="xl" c="dimmed">No categories yet</Text>
+                  <Text ta="center" py="xl" className="text-stone-400">No categories yet</Text>
                 </Table.Td>
               </Table.Tr>
             )}

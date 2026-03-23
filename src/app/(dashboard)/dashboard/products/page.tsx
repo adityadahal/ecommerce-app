@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { formatPrice } from "@/lib/utils";
-import { Button, Badge, Table, Card, Text, Skeleton } from "@mantine/core";
+import { Button, Table, Card, Text, Skeleton } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import { Plus, Pencil, Trash2 } from "lucide-react";
 import { ProductModal } from "@/components/dashboard/product-modal";
@@ -64,22 +64,22 @@ export default function ProductsPage() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <div>
-          <Text size="xl" fw={700}>Products</Text>
-          <Text size="sm" c="dimmed">{loading ? "..." : `${products.length} products`}</Text>
+          <h1 className="text-2xl font-bold text-stone-900">Products</h1>
+          <p className="text-sm text-stone-500">{loading ? "..." : `${products.length} products`}</p>
         </div>
         <Button color="green" leftSection={<Plus size={16} />} onClick={openCreate}>Add Product</Button>
       </div>
 
-      <Card shadow="sm" radius="md" withBorder p={0}>
+      <Card shadow="sm" radius="lg" withBorder p={0} className="border-stone-200 bg-white rounded-xl">
         <Table verticalSpacing="sm" horizontalSpacing="md">
           <Table.Thead>
-            <Table.Tr>
-              <Table.Th>Product</Table.Th>
-              <Table.Th>Category</Table.Th>
-              <Table.Th>Price</Table.Th>
-              <Table.Th>Stock</Table.Th>
-              <Table.Th>Status</Table.Th>
-              <Table.Th>Actions</Table.Th>
+            <Table.Tr className="bg-stone-50">
+              <Table.Th className="text-stone-600">Product</Table.Th>
+              <Table.Th className="text-stone-600">Category</Table.Th>
+              <Table.Th className="text-stone-600">Price</Table.Th>
+              <Table.Th className="text-stone-600">Stock</Table.Th>
+              <Table.Th className="text-stone-600">Status</Table.Th>
+              <Table.Th className="text-stone-600">Actions</Table.Th>
             </Table.Tr>
           </Table.Thead>
           <Table.Tbody>
@@ -94,32 +94,34 @@ export default function ProductsPage() {
             ) : products.length === 0 ? (
               <Table.Tr>
                 <Table.Td colSpan={6}>
-                  <Text ta="center" py="xl" c="dimmed">No products yet</Text>
+                  <Text ta="center" py="xl" className="text-stone-400">No products yet</Text>
                 </Table.Td>
               </Table.Tr>
             ) : (
               products.map((product) => (
-                <Table.Tr key={product.id}>
+                <Table.Tr key={product.id} className="hover:bg-stone-50">
                   <Table.Td>
-                    <Text size="sm" fw={500}>{product.name}</Text>
-                    <Text size="xs" c="dimmed">{product.unit}</Text>
+                    <Text size="sm" fw={500} className="text-stone-700">{product.name}</Text>
+                    <Text size="xs" className="text-stone-400">{product.unit}</Text>
                   </Table.Td>
-                  <Table.Td><Text size="sm">{product.category.name}</Text></Table.Td>
+                  <Table.Td><Text size="sm" className="text-stone-700">{product.category.name}</Text></Table.Td>
                   <Table.Td>
-                    <Text size="sm" fw={500}>{formatPrice(product.price)}</Text>
+                    <Text size="sm" fw={500} className="text-stone-700">{formatPrice(product.price)}</Text>
                     {product.compareAtPrice && (
-                      <Text size="xs" c="dimmed" td="line-through">{formatPrice(product.compareAtPrice)}</Text>
+                      <Text size="xs" className="text-stone-400" td="line-through">{formatPrice(product.compareAtPrice)}</Text>
                     )}
                   </Table.Td>
                   <Table.Td>
-                    <Text size="sm" c={product.stock <= 5 ? "red" : undefined} fw={product.stock <= 5 ? 600 : undefined}>
+                    <Text size="sm" c={product.stock <= 5 ? "red" : undefined} fw={product.stock <= 5 ? 600 : undefined} className={product.stock > 5 ? "text-stone-700" : undefined}>
                       {product.stock}
                     </Text>
                   </Table.Td>
                   <Table.Td>
-                    <Badge color={product.isActive ? "green" : "gray"} size="sm">
-                      {product.isActive ? "Active" : "Inactive"}
-                    </Badge>
+                    {product.isActive ? (
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-lg text-xs font-medium bg-emerald-100 text-emerald-700">Active</span>
+                    ) : (
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-lg text-xs font-medium bg-stone-100 text-stone-600">Inactive</span>
+                    )}
                   </Table.Td>
                   <Table.Td>
                     <div className="flex gap-2">

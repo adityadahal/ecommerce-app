@@ -2,130 +2,150 @@
 
 import Link from "next/link";
 import { useSession, signOut } from "next-auth/react";
-import { ShoppingCart, User, Menu, X, LogOut, Package, LayoutDashboard } from "lucide-react";
-import { Button, Collapse, Transition } from "@mantine/core";
-import { useState } from "react";
+import { ShoppingCart, User, Package, LayoutDashboard, LogOut } from "lucide-react";
+import { Group, Text, Button, ActionIcon, Indicator, Menu, Burger, Collapse, ThemeIcon, Anchor, Box, Divider } from "@mantine/core";
+import { useDisclosure } from "@mantine/hooks";
 import { useLocalCart } from "@/hooks/use-cart";
 import { LiveSearch } from "@/components/store/live-search";
+
+const navLinks = [
+  { href: "/category/fruits-vegetables", label: "Fruits & Vegetables" },
+  { href: "/category/dairy-eggs", label: "Dairy & Eggs" },
+  { href: "/category/meat-seafood", label: "Meat & Seafood" },
+  { href: "/category/bakery", label: "Bakery" },
+  { href: "/category/pantry", label: "Pantry" },
+];
 
 export function Header() {
   const { data: session } = useSession();
   const { itemCount } = useLocalCart();
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const [mobileOpen, { toggle: toggleMobile, close: closeMobile }] = useDisclosure(false);
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b bg-white">
-      <div className="mx-auto flex h-16 max-w-7xl items-center gap-4 px-4">
-        <button
-          className="lg:hidden"
-          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-        >
-          {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-        </button>
+    <>
+      {/* Announcement Bar */}
+      <Box
+        py={6}
+        ta="center"
+        c="white"
+        style={{ background: "linear-gradient(to right, #047857, #0f766e)" }}
+      >
+        <Text size="xs" fw={500} inherit>
+          Free delivery on orders over $75 &bull; Same-day delivery for orders before 2pm
+        </Text>
+      </Box>
 
-        <Link href="/" className="flex items-center gap-2 text-xl font-bold text-primary">
-          <ShoppingCart size={28} />
-          <span>FreshMart</span>
-        </Link>
+      {/* Main Header */}
+      <Box
+        pos="sticky"
+        top={0}
+        style={{ zIndex: 40, backdropFilter: "blur(16px)", backgroundColor: "rgba(255,255,255,0.85)", borderBottom: "1px solid var(--mantine-color-gray-2)" }}
+      >
+        <Group h={60} px="md" maw={1280} mx="auto" justify="space-between" wrap="nowrap">
+          <Group gap="md" wrap="nowrap">
+            <Burger opened={mobileOpen} onClick={toggleMobile} hiddenFrom="lg" size="sm" />
+            <Anchor component={Link} href="/" underline="never">
+              <Group gap="xs" wrap="nowrap">
+                <ThemeIcon color="green" size="md" radius="md">
+                  <ShoppingCart size={16} />
+                </ThemeIcon>
+                <Text fw={700} size="lg" c="dark">
+                  Fresh<Text span c="green" inherit>Mart</Text>
+                </Text>
+              </Group>
+            </Anchor>
+          </Group>
 
-        <nav className="hidden lg:flex items-center gap-6 ml-8">
-          <Link href="/category/fruits-vegetables" className="text-sm font-medium hover:text-primary">
-            Fruits & Vegetables
-          </Link>
-          <Link href="/category/dairy-eggs" className="text-sm font-medium hover:text-primary">
-            Dairy & Eggs
-          </Link>
-          <Link href="/category/meat-seafood" className="text-sm font-medium hover:text-primary">
-            Meat & Seafood
-          </Link>
-          <Link href="/category/bakery" className="text-sm font-medium hover:text-primary">
-            Bakery
-          </Link>
-          <Link href="/category/pantry" className="text-sm font-medium hover:text-primary">
-            Pantry
-          </Link>
-        </nav>
+          {/* Desktop nav */}
+          <Group gap={4} visibleFrom="lg">
+            {navLinks.map((link) => (
+              <Anchor key={link.href} component={Link} href={link.href} underline="never" c="dark" size="sm" fw={500} px="sm" py="xs" style={{ borderRadius: "var(--mantine-radius-md)" }} className="hover:bg-[var(--mantine-color-green-0)]">
+                {link.label}
+              </Anchor>
+            ))}
+          </Group>
 
-        <div className="hidden md:block flex-1 max-w-md ml-auto">
-          <LiveSearch />
-        </div>
-
-        <div className="flex items-center gap-2 ml-auto lg:ml-0">
-          <Link href="/track" className="hidden sm:block">
-            <Button variant="subtle" size="sm" leftSection={<Package size={16} />}>
-              Track Order
-            </Button>
-          </Link>
-
-          <Link href="/cart" className="relative">
-            <Button variant="subtle" size="sm" className="px-2">
-              <ShoppingCart size={20} />
-              {itemCount > 0 && (
-                <span key={itemCount} className="cart-badge-bounce absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[10px] font-bold text-white">
-                  {itemCount}
-                </span>
-              )}
-            </Button>
-          </Link>
-
-          {/* Admin menu — only visible when admin is logged in */}
-          {session?.user?.role === "ADMIN" && (
-            <div className="relative">
-              <Button variant="subtle" size="sm" className="px-2" onClick={() => setUserMenuOpen(!userMenuOpen)}>
-                <User size={20} />
-              </Button>
-              <Transition mounted={userMenuOpen} transition="pop-top-right" duration={150}>
-                {(styles) => (
-                  <div style={styles} className="absolute right-0 top-full mt-2 w-48 rounded-lg border bg-white py-2 shadow-lg">
-                    <div className="px-4 py-2 border-b">
-                      <p className="text-sm font-medium">{session.user.name}</p>
-                      <p className="text-xs text-muted-foreground">{session.user.email}</p>
-                    </div>
-                    <Link
-                      href="/dashboard"
-                      onClick={() => setUserMenuOpen(false)}
-                      className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-accent"
-                    >
-                      <LayoutDashboard size={16} />
-                      Dashboard
-                    </Link>
-                    <button
-                      onClick={() => { setUserMenuOpen(false); signOut(); }}
-                      className="flex w-full items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-accent"
-                    >
-                      <LogOut size={16} />
-                      Sign Out
-                    </button>
-                  </div>
-                )}
-              </Transition>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Mobile menu */}
-      <Collapse in={mobileMenuOpen}>
-        <div className="border-t lg:hidden">
-          <div className="p-4">
+          {/* Search */}
+          <Box visibleFrom="md" flex={1} maw={400} ml="auto">
             <LiveSearch />
-          </div>
-          <nav className="flex flex-col pb-4">
-            <Link href="/category/fruits-vegetables" className="px-4 py-2 text-sm hover:bg-accent" onClick={() => setMobileMenuOpen(false)}>Fruits & Vegetables</Link>
-            <Link href="/category/dairy-eggs" className="px-4 py-2 text-sm hover:bg-accent" onClick={() => setMobileMenuOpen(false)}>Dairy & Eggs</Link>
-            <Link href="/category/meat-seafood" className="px-4 py-2 text-sm hover:bg-accent" onClick={() => setMobileMenuOpen(false)}>Meat & Seafood</Link>
-            <Link href="/category/bakery" className="px-4 py-2 text-sm hover:bg-accent" onClick={() => setMobileMenuOpen(false)}>Bakery</Link>
-            <Link href="/category/pantry" className="px-4 py-2 text-sm hover:bg-accent" onClick={() => setMobileMenuOpen(false)}>Pantry</Link>
-            <div className="border-t mt-2 pt-2">
-              <Link href="/track" className="px-4 py-2 text-sm hover:bg-accent flex items-center gap-2" onClick={() => setMobileMenuOpen(false)}>
-                <Package size={14} />
+          </Box>
+
+          {/* Right actions */}
+          <Group gap="xs" wrap="nowrap">
+            <Box visibleFrom="sm">
+              <Button component={Link} href="/track" variant="subtle" color="gray" size="sm" leftSection={<Package size={16} />}>
                 Track Order
-              </Link>
-            </div>
-          </nav>
-        </div>
-      </Collapse>
-    </header>
+              </Button>
+            </Box>
+
+            <Indicator color="green" label={itemCount} size={18} disabled={itemCount === 0} offset={4}>
+              <ActionIcon component={Link} href="/cart" variant="subtle" color="gray" size="lg">
+                <ShoppingCart size={20} />
+              </ActionIcon>
+            </Indicator>
+
+            {/* Admin menu */}
+            {session?.user?.role === "ADMIN" && (
+              <Menu shadow="md" width={220} position="bottom-end">
+                <Menu.Target>
+                  <ActionIcon variant="subtle" color="gray" size="lg">
+                    <ThemeIcon color="green" size="sm" radius="xl" variant="light">
+                      <User size={14} />
+                    </ThemeIcon>
+                  </ActionIcon>
+                </Menu.Target>
+                <Menu.Dropdown>
+                  <Menu.Label>
+                    <Text fw={600} size="sm">{session.user.name}</Text>
+                    <Text size="xs" c="dimmed">{session.user.email}</Text>
+                  </Menu.Label>
+                  <Menu.Divider />
+                  <Menu.Item component={Link} href="/dashboard" leftSection={<LayoutDashboard size={16} />}>
+                    Dashboard
+                  </Menu.Item>
+                  <Menu.Item color="red" leftSection={<LogOut size={16} />} onClick={() => signOut()}>
+                    Sign Out
+                  </Menu.Item>
+                </Menu.Dropdown>
+              </Menu>
+            )}
+          </Group>
+        </Group>
+
+        {/* Mobile menu */}
+        <Collapse in={mobileOpen}>
+          <Box p="md" hiddenFrom="lg" style={{ borderTop: "1px solid var(--mantine-color-gray-1)" }}>
+            <LiveSearch />
+            <Box mt="sm">
+              {navLinks.map((link) => (
+                <Anchor
+                  key={link.href}
+                  component={Link}
+                  href={link.href}
+                  underline="never"
+                  c="dark"
+                  size="sm"
+                  fw={500}
+                  display="block"
+                  px="sm"
+                  py="xs"
+                  style={{ borderRadius: "var(--mantine-radius-md)" }}
+                  onClick={closeMobile}
+                >
+                  {link.label}
+                </Anchor>
+              ))}
+              <Divider my="xs" />
+              <Anchor component={Link} href="/track" underline="never" c="dark" size="sm" fw={500} display="block" px="sm" py="xs" onClick={closeMobile}>
+                <Group gap="xs">
+                  <Package size={14} />
+                  Track Order
+                </Group>
+              </Anchor>
+            </Box>
+          </Box>
+        </Collapse>
+      </Box>
+    </>
   );
 }

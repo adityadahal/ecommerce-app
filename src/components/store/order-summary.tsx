@@ -1,3 +1,4 @@
+import { Text, Stack, Group, Divider, Alert } from "@mantine/core";
 import { formatPrice } from "@/lib/utils";
 
 type OrderSummaryProps = {
@@ -5,7 +6,6 @@ type OrderSummaryProps = {
   gst: number;
   deliveryFee: number;
   total: number;
-  /** Show "X away from free delivery" hint */
   showFreeDeliveryHint?: boolean;
 };
 
@@ -17,28 +17,31 @@ export function OrderSummary({
   showFreeDeliveryHint = false,
 }: OrderSummaryProps) {
   return (
-    <div className="space-y-2 text-sm">
-      <div className="flex justify-between">
-        <span>Subtotal</span>
-        <span>{formatPrice(subtotal)}</span>
-      </div>
-      <div className="flex justify-between">
-        <span>GST (included)</span>
-        <span>{formatPrice(gst)}</span>
-      </div>
-      <div className="flex justify-between">
-        <span>Delivery</span>
-        <span>{deliveryFee === 0 ? "FREE" : formatPrice(deliveryFee)}</span>
-      </div>
+    <Stack gap="xs">
+      <Group justify="space-between">
+        <Text size="sm" c="dimmed">Subtotal</Text>
+        <Text size="sm" fw={500}>{formatPrice(subtotal)}</Text>
+      </Group>
+      <Group justify="space-between">
+        <Text size="sm" c="dimmed">GST (included)</Text>
+        <Text size="sm" fw={500}>{formatPrice(gst)}</Text>
+      </Group>
+      <Group justify="space-between">
+        <Text size="sm" c="dimmed">Delivery</Text>
+        <Text size="sm" fw={500} c={deliveryFee === 0 ? "green" : undefined}>
+          {deliveryFee === 0 ? "FREE" : formatPrice(deliveryFee)}
+        </Text>
+      </Group>
       {showFreeDeliveryHint && deliveryFee > 0 && (
-        <p className="text-xs text-muted-foreground">
-          Free delivery on orders over $75 (${(75 - subtotal).toFixed(2)} away)
-        </p>
+        <Alert color="green" variant="light" p="xs">
+          <Text size="xs">Add ${(75 - subtotal).toFixed(2)} more for free delivery!</Text>
+        </Alert>
       )}
-      <div className="border-t pt-2 flex justify-between font-bold text-base">
-        <span>Total</span>
-        <span>{formatPrice(total)}</span>
-      </div>
-    </div>
+      <Divider />
+      <Group justify="space-between">
+        <Text fw={700}>Total</Text>
+        <Text fw={700}>{formatPrice(total)}</Text>
+      </Group>
+    </Stack>
   );
 }

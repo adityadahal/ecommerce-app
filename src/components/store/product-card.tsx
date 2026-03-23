@@ -3,7 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { ShoppingCart, Check } from "lucide-react";
-import { Button, Badge } from "@mantine/core";
+import { Button, Badge, Text, Group, Stack } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import { formatPrice } from "@/lib/utils";
 import { useLocalCart } from "@/hooks/use-cart";
@@ -39,49 +39,45 @@ export function ProductCard({ id, name, slug, price, compareAtPrice, images, sto
 
   return (
     <Link href={`/product/${slug}`} className="group block">
-      <div className="overflow-hidden rounded-lg border bg-white transition-shadow hover:shadow-md">
-        <div className="relative aspect-square bg-gray-100">
+      <div className="overflow-hidden rounded-[var(--mantine-radius-lg)] bg-white shadow-sm transition-all duration-300 hover:shadow-lg hover:-translate-y-1">
+        <div className="relative aspect-square" style={{ background: "var(--mantine-color-gray-1)" }}>
           <Image
             src={imageUrl}
             alt={name}
             fill
-            className="object-cover transition-transform group-hover:scale-105"
+            className="object-cover transition-transform duration-500 group-hover:scale-105"
             sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 25vw"
           />
           {isOnSale && (
-            <Badge color="red" className="absolute top-2 left-2">-{discount}%</Badge>
+            <Badge color="red" className="absolute top-2.5 left-2.5" style={{ position: "absolute" }}>-{discount}%</Badge>
           )}
           {stock <= 0 && (
-            <div className="absolute inset-0 flex items-center justify-center bg-black/40">
-              <Badge color="gray" variant="filled">Out of Stock</Badge>
+            <div className="absolute inset-0" style={{ display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,0.4)", backdropFilter: "blur(2px)" }}>
+              <Badge color="gray" variant="filled" size="lg">Out of Stock</Badge>
             </div>
           )}
         </div>
-        <div className="p-3">
-          {category && (
-            <p className="text-xs text-muted-foreground mb-1">{category}</p>
-          )}
-          <h3 className="text-sm font-medium line-clamp-2 min-h-[2.5rem]">{name}</h3>
-          <div className="mt-2 flex items-center gap-2">
-            <span className="text-lg font-bold text-primary">{formatPrice(price)}</span>
-            {isOnSale && (
-              <span className="text-sm text-muted-foreground line-through">{formatPrice(compareAtPrice)}</span>
-            )}
-          </div>
-          <p className="text-xs text-muted-foreground">{unit}</p>
-          <div className="mt-3 transition-all duration-200 opacity-100 md:opacity-0 md:group-hover:opacity-100">
+        <Stack p="sm" gap={4}>
+          {category && <Text size="xs" c="dimmed">{category}</Text>}
+          <Text size="sm" fw={600} lineClamp={2} style={{ minHeight: "2.5rem" }}>{name}</Text>
+          <Group gap="xs">
+            <Text size="lg" fw={700} c="green.7">{formatPrice(price)}</Text>
+            {isOnSale && <Text size="sm" c="dimmed" td="line-through">{formatPrice(compareAtPrice)}</Text>}
+          </Group>
+          <Text size="xs" c="dimmed">{unit}</Text>
+          <div className="mt-1 transition-all duration-200 opacity-100 md:opacity-0 md:group-hover:opacity-100">
             <Button
               onClick={handleAddToCart}
               disabled={stock <= 0}
               size="sm"
-              color={justAdded ? "green" : "green"}
+              color="green"
               fullWidth
               leftSection={justAdded ? <Check size={14} /> : <ShoppingCart size={14} />}
             >
               {justAdded ? "Added!" : "Add to Cart"}
             </Button>
           </div>
-        </div>
+        </Stack>
       </div>
     </Link>
   );

@@ -1,22 +1,30 @@
 import Link from "next/link";
 import { Header } from "@/components/layout/header";
 import { Footer } from "@/components/layout/footer";
+import { Container, Grid, NavLink, Title } from "@mantine/core";
+import { User, ShoppingBag, MapPin } from "lucide-react";
 
 export default function AccountLayout({ children }: { children: React.ReactNode }) {
   return (
     <>
       <Header />
-      <div className="mx-auto max-w-7xl px-4 py-8">
-        <div className="grid gap-8 md:grid-cols-4">
-          <nav className="space-y-1">
-            <h2 className="mb-4 text-lg font-semibold">My Account</h2>
-            <Link href="/account" className="block rounded-md px-3 py-2 text-sm hover:bg-accent">Profile</Link>
-            <Link href="/account/orders" className="block rounded-md px-3 py-2 text-sm hover:bg-accent">Orders</Link>
-            <Link href="/account/addresses" className="block rounded-md px-3 py-2 text-sm hover:bg-accent">Addresses</Link>
-          </nav>
-          <div className="md:col-span-3">{children}</div>
-        </div>
-      </div>
+      <Container size={1280} py="xl">
+        <Grid gutter="xl">
+          <Grid.Col span={{ base: 12, md: 3 }}>
+            <Title order={4} mb="md">My Account</Title>
+            <Link href="/account" style={{ textDecoration: "none" }}>
+              <NavLink label="Profile" leftSection={<User size={16} />} style={{ borderRadius: "var(--mantine-radius-md)" }} />
+            </Link>
+            <Link href="/account/orders" style={{ textDecoration: "none" }}>
+              <NavLink label="Orders" leftSection={<ShoppingBag size={16} />} style={{ borderRadius: "var(--mantine-radius-md)" }} />
+            </Link>
+            <Link href="/account/addresses" style={{ textDecoration: "none" }}>
+              <NavLink label="Addresses" leftSection={<MapPin size={16} />} style={{ borderRadius: "var(--mantine-radius-md)" }} />
+            </Link>
+          </Grid.Col>
+          <Grid.Col span={{ base: 12, md: 9 }}>{children}</Grid.Col>
+        </Grid>
+      </Container>
       <Footer />
     </>
   );

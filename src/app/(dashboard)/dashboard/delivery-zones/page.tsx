@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Button, Badge, Table, Card, Text } from "@mantine/core";
+import { Button, Table, Card, Text } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import { Plus, Trash2, Pencil } from "lucide-react";
 import { formatPrice } from "@/lib/utils";
@@ -52,35 +52,37 @@ export default function DeliveryZonesPage() {
     <div>
       <div className="flex items-center justify-between mb-6">
         <div>
-          <Text size="xl" fw={700}>Delivery Zones</Text>
-          <Text size="sm" c="dimmed">{zones.length} zones</Text>
+          <h1 className="text-2xl font-bold text-stone-900">Delivery Zones</h1>
+          <p className="text-sm text-stone-500">{zones.length} zones</p>
         </div>
         <Button color="green" leftSection={<Plus size={16} />} onClick={openCreate}>Add Zone</Button>
       </div>
 
-      <Card shadow="sm" radius="md" withBorder p={0}>
+      <Card shadow="sm" radius="lg" withBorder p={0} className="border-stone-200 bg-white rounded-xl">
         <Table verticalSpacing="sm" horizontalSpacing="md">
           <Table.Thead>
-            <Table.Tr>
-              <Table.Th>Zone</Table.Th>
-              <Table.Th>Postcodes</Table.Th>
-              <Table.Th>Delivery Fee</Table.Th>
-              <Table.Th>Free Delivery Min</Table.Th>
-              <Table.Th>Status</Table.Th>
-              <Table.Th>Actions</Table.Th>
+            <Table.Tr className="bg-stone-50">
+              <Table.Th className="text-stone-600">Zone</Table.Th>
+              <Table.Th className="text-stone-600">Postcodes</Table.Th>
+              <Table.Th className="text-stone-600">Delivery Fee</Table.Th>
+              <Table.Th className="text-stone-600">Free Delivery Min</Table.Th>
+              <Table.Th className="text-stone-600">Status</Table.Th>
+              <Table.Th className="text-stone-600">Actions</Table.Th>
             </Table.Tr>
           </Table.Thead>
           <Table.Tbody>
             {zones.map((zone) => (
-              <Table.Tr key={zone.id}>
-                <Table.Td><Text size="sm" fw={500}>{zone.name}</Text></Table.Td>
-                <Table.Td><Text size="sm">{zone.postcodeFrom} - {zone.postcodeTo}</Text></Table.Td>
-                <Table.Td><Text size="sm">{formatPrice(zone.deliveryFee)}</Text></Table.Td>
-                <Table.Td><Text size="sm">{zone.minOrderForFree ? formatPrice(zone.minOrderForFree) : "-"}</Text></Table.Td>
+              <Table.Tr key={zone.id} className="hover:bg-stone-50">
+                <Table.Td><Text size="sm" fw={500} className="text-stone-700">{zone.name}</Text></Table.Td>
+                <Table.Td><Text size="sm" className="text-stone-700">{zone.postcodeFrom} - {zone.postcodeTo}</Text></Table.Td>
+                <Table.Td><Text size="sm" className="text-stone-700">{formatPrice(zone.deliveryFee)}</Text></Table.Td>
+                <Table.Td><Text size="sm" className="text-stone-700">{zone.minOrderForFree ? formatPrice(zone.minOrderForFree) : "-"}</Text></Table.Td>
                 <Table.Td>
-                  <Badge color={zone.isActive ? "green" : "gray"} size="sm">
-                    {zone.isActive ? "Active" : "Inactive"}
-                  </Badge>
+                  {zone.isActive ? (
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-lg text-xs font-medium bg-emerald-100 text-emerald-700">Active</span>
+                  ) : (
+                    <span className="inline-flex items-center px-2 py-0.5 rounded-lg text-xs font-medium bg-stone-100 text-stone-600">Inactive</span>
+                  )}
                 </Table.Td>
                 <Table.Td>
                   <div className="flex gap-2">
@@ -93,7 +95,7 @@ export default function DeliveryZonesPage() {
             {zones.length === 0 && (
               <Table.Tr>
                 <Table.Td colSpan={6}>
-                  <Text ta="center" py="xl" c="dimmed">No delivery zones configured</Text>
+                  <Text ta="center" py="xl" className="text-stone-400">No delivery zones configured</Text>
                 </Table.Td>
               </Table.Tr>
             )}

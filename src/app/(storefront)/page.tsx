@@ -4,7 +4,7 @@ import Link from "next/link";
 import { db } from "@/lib/db";
 import { ProductCard } from "@/components/store/product-card";
 import { AnimateOnScroll } from "@/components/store/animate-on-scroll";
-import { Button } from "@mantine/core";
+import { Container, SimpleGrid, Title, Text, Button, Group, ThemeIcon, Card, Stack, Box } from "@mantine/core";
 import { ArrowRight, Truck, Shield, Clock, Leaf } from "lucide-react";
 
 async function getFeaturedProducts() {
@@ -43,165 +43,162 @@ export default async function HomePage() {
   return (
     <div>
       {/* Hero Banner */}
-      <section className="bg-gradient-to-r from-green-600 to-green-700 text-white">
-        <div className="mx-auto max-w-7xl px-4 py-16 md:py-24">
-          <div className="max-w-2xl">
-            <h1 className="text-4xl font-bold md:text-5xl lg:text-6xl">
-              Fresh Groceries,
-              <br />
-              Delivered to You
-            </h1>
-            <p className="mt-4 text-lg text-green-100 md:text-xl">
-              Shop quality fruits, vegetables, dairy, meat, and pantry essentials.
-              Free delivery on orders over $75.
-            </p>
-            <div className="mt-8 flex gap-4">
+      <Box
+        pos="relative"
+        py={{ base: 60, md: 80 }}
+        style={{ overflow: "hidden", background: "linear-gradient(135deg, #059669 0%, #047857 50%, #0f766e 100%)" }}
+      >
+        <Box pos="absolute" top={0} right={0} w={500} h={500} style={{ borderRadius: "50%", background: "rgba(255,255,255,0.05)", transform: "translate(25%,-25%)" }} />
+        <Box pos="absolute" bottom={0} left={0} w={320} h={320} style={{ borderRadius: "50%", background: "rgba(255,255,255,0.05)", transform: "translate(-25%,33%)" }} />
+
+        <Container size={1280} pos="relative">
+          <Box maw={600}>
+            <Text size="sm" fw={500} c="white" mb="lg" px="md" py={6} display="inline-block" style={{ borderRadius: "var(--mantine-radius-xl)", background: "rgba(255,255,255,0.15)", backdropFilter: "blur(8px)", border: "1px solid rgba(255,255,255,0.1)" }}>
+              Free delivery on orders over $75
+            </Text>
+            <Title order={1} c="white" fz={{ base: 36, md: 48, lg: 56 }} lh={1.1}>
+              Fresh Groceries,<br />
+              <Text span c="green.2" inherit>Delivered to You</Text>
+            </Title>
+            <Text size="lg" c="green.1" mt="lg" maw={480} style={{ opacity: 0.8 }}>
+              Shop quality fruits, vegetables, dairy, meat, and pantry essentials from local suppliers.
+            </Text>
+            <Group mt="xl" gap="md">
               <Link href="/category/fruits-vegetables">
-                <Button size="lg" color="white" variant="filled" c="green.7" rightSection={<ArrowRight size={16} />}>
+                <Button size="lg" color="white" variant="filled" c="green.8" rightSection={<ArrowRight size={16} />}>
                   Shop Now
                 </Button>
               </Link>
-            </div>
-          </div>
-        </div>
-      </section>
+              <Link href="/track">
+                <Button size="lg" variant="outline" color="white" style={{ borderColor: "rgba(255,255,255,0.3)" }}>
+                  Track Order
+                </Button>
+              </Link>
+            </Group>
+          </Box>
+        </Container>
+      </Box>
 
       {/* Features */}
-      <section className="border-b bg-white">
-        <div className="mx-auto max-w-7xl px-4 py-8">
-          <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-            <div className="flex items-center gap-3">
-              <Truck className="text-primary" size={24} />
-              <div>
-                <p className="text-sm font-medium">Free Delivery</p>
-                <p className="text-xs text-muted-foreground">On orders over $75</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <Leaf className="text-primary" size={24} />
-              <div>
-                <p className="text-sm font-medium">Fresh Quality</p>
-                <p className="text-xs text-muted-foreground">Farm to your door</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <Clock className="text-primary" size={24} />
-              <div>
-                <p className="text-sm font-medium">Same Day</p>
-                <p className="text-xs text-muted-foreground">Order before 2pm</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <Shield className="text-primary" size={24} />
-              <div>
-                <p className="text-sm font-medium">Secure Payment</p>
-                <p className="text-xs text-muted-foreground">100% secure checkout</p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
+      <Box bg="white" style={{ borderBottom: "1px solid var(--mantine-color-gray-2)" }}>
+        <Container size={1280} py="lg">
+          <SimpleGrid cols={{ base: 2, md: 4 }} spacing="lg">
+            {[
+              { icon: Truck, title: "Free Delivery", desc: "On orders over $75", color: "green" },
+              { icon: Leaf, title: "Fresh Quality", desc: "Farm to your door", color: "teal" },
+              { icon: Clock, title: "Same Day", desc: "Order before 2pm", color: "yellow" },
+              { icon: Shield, title: "Secure Payment", desc: "100% secure checkout", color: "blue" },
+            ].map((f) => (
+              <Group key={f.title} gap="md" wrap="nowrap">
+                <ThemeIcon color={f.color} size="xl" radius="md" variant="light">
+                  <f.icon size={22} />
+                </ThemeIcon>
+                <div>
+                  <Text size="sm" fw={600}>{f.title}</Text>
+                  <Text size="xs" c="dimmed">{f.desc}</Text>
+                </div>
+              </Group>
+            ))}
+          </SimpleGrid>
+        </Container>
+      </Box>
 
       {/* Categories */}
       {categories.length > 0 && (
         <AnimateOnScroll>
-          <section className="mx-auto max-w-7xl px-4 py-12">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold">Shop by Category</h2>
-            </div>
-            <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">
+          <Container size={1280} py="xl">
+            <Title order={2} mb="lg">Shop by Category</Title>
+            <SimpleGrid cols={{ base: 2, md: 3, lg: 6 }} spacing="md">
               {categories.map((cat, index) => (
-                <div key={cat.id} className="transition-all duration-500 ease-out" style={{ transitionDelay: `${index * 75}ms` }}>
-                  <Link
-                    href={`/category/${cat.slug}`}
-                    className="group flex flex-col items-center gap-3 rounded-lg border p-6 text-center transition-colors hover:border-primary hover:bg-green-50"
-                  >
-                    <div className="flex h-16 w-16 items-center justify-center rounded-full bg-green-100 text-2xl">
-                      {cat.image || "🛒"}
-                    </div>
-                    <span className="text-sm font-medium group-hover:text-primary">{cat.name}</span>
+                <div key={cat.id} style={{ transitionDelay: `${index * 75}ms` }} className="transition-all duration-500 ease-out">
+                  <Link href={`/category/${cat.slug}`} style={{ textDecoration: "none", color: "inherit" }}>
+                    <Card shadow="sm" padding="lg" radius="lg" className="transition-all duration-300 hover:shadow-md hover:-translate-y-1">
+                      <Stack align="center" gap="sm">
+                        <ThemeIcon color="green" size={60} radius="xl" variant="light">
+                          <Text fz={28}>{cat.image || "🛒"}</Text>
+                        </ThemeIcon>
+                        <Text fw={600} size="sm" ta="center">{cat.name}</Text>
+                      </Stack>
+                    </Card>
                   </Link>
                 </div>
               ))}
-            </div>
-          </section>
+            </SimpleGrid>
+          </Container>
         </AnimateOnScroll>
       )}
 
       {/* Featured Products */}
       {featured.length > 0 && (
         <AnimateOnScroll>
-          <section className="mx-auto max-w-7xl px-4 py-12">
-            <div className="flex items-center justify-between mb-6">
-              <h2 className="text-2xl font-bold">Featured Products</h2>
-              <Link href="/search" className="text-sm text-primary hover:underline">
-                View All <ArrowRight className="inline" size={14} />
-              </Link>
-            </div>
-            <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-4">
-              {featured.map((product, index) => (
-                <div key={product.id} className="transition-all duration-500 ease-out" style={{ transitionDelay: `${index * 75}ms` }}>
-                  <ProductCard
-                    id={product.id}
-                    name={product.name}
-                    slug={product.slug}
-                    price={product.price}
-                    compareAtPrice={product.compareAtPrice}
-                    images={product.images}
-                    stock={product.stock}
-                    unit={product.unit}
-                    category={product.category.name}
-                  />
-                </div>
-              ))}
-            </div>
-          </section>
+          <Box bg="white" py="xl">
+            <Container size={1280}>
+              <Group justify="space-between" mb="lg">
+                <Title order={2}>Featured Products</Title>
+                <Link href="/search">
+                  <Button variant="subtle" color="green" size="sm" rightSection={<ArrowRight size={14} />}>
+                    View All
+                  </Button>
+                </Link>
+              </Group>
+              <SimpleGrid cols={{ base: 2, md: 3, lg: 4 }} spacing="md">
+                {featured.map((product, index) => (
+                  <div key={product.id} style={{ transitionDelay: `${index * 75}ms` }} className="transition-all duration-500 ease-out">
+                    <ProductCard
+                      id={product.id} name={product.name} slug={product.slug}
+                      price={product.price} compareAtPrice={product.compareAtPrice}
+                      images={product.images} stock={product.stock} unit={product.unit}
+                      category={product.category.name}
+                    />
+                  </div>
+                ))}
+              </SimpleGrid>
+            </Container>
+          </Box>
         </AnimateOnScroll>
       )}
 
       {/* On Sale */}
       {onSale.length > 0 && (
         <AnimateOnScroll>
-          <section className="bg-red-50">
-            <div className="mx-auto max-w-7xl px-4 py-12">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold text-red-700">On Sale</h2>
-              </div>
-              <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
+          <Box style={{ background: "linear-gradient(135deg, #fef2f2, #fff7ed)" }} py="xl">
+            <Container size={1280}>
+              <Stack gap={4} mb="lg">
+                <Title order={2} c="red.7">On Sale</Title>
+                <Text size="sm" c="red.5">Great deals on quality products</Text>
+              </Stack>
+              <SimpleGrid cols={{ base: 2, md: 4 }} spacing="md">
                 {onSale.map((product, index) => (
-                  <div key={product.id} className="transition-all duration-500 ease-out" style={{ transitionDelay: `${index * 75}ms` }}>
+                  <div key={product.id} style={{ transitionDelay: `${index * 75}ms` }} className="transition-all duration-500 ease-out">
                     <ProductCard
-                      id={product.id}
-                      name={product.name}
-                      slug={product.slug}
-                      price={product.price}
-                      compareAtPrice={product.compareAtPrice}
-                      images={product.images}
-                      stock={product.stock}
-                      unit={product.unit}
+                      id={product.id} name={product.name} slug={product.slug}
+                      price={product.price} compareAtPrice={product.compareAtPrice}
+                      images={product.images} stock={product.stock} unit={product.unit}
                       category={product.category.name}
                     />
                   </div>
                 ))}
-              </div>
-            </div>
-          </section>
+              </SimpleGrid>
+            </Container>
+          </Box>
         </AnimateOnScroll>
       )}
 
       {/* CTA */}
       <AnimateOnScroll>
-        <section className="mx-auto max-w-7xl px-4 py-16 text-center">
-          <h2 className="text-3xl font-bold">Ready to Shop?</h2>
-          <p className="mt-2 text-muted-foreground">
-            Browse our full range of fresh groceries and get them delivered today.
-          </p>
-          <Link href="/category/fruits-vegetables" className="mt-6 inline-block">
-            <Button size="lg" color="green" rightSection={<ArrowRight size={16} />}>
-              Start Shopping
-            </Button>
-          </Link>
-        </section>
+        <Box py={60} ta="center" style={{ background: "linear-gradient(to right, #059669, #0f766e)" }}>
+          <Container size={600}>
+            <Title order={2} c="white">Ready to Shop?</Title>
+            <Text c="green.1" mt="sm" style={{ opacity: 0.8 }}>
+              Browse our full range of fresh groceries and get them delivered today.
+            </Text>
+            <Link href="/category/fruits-vegetables">
+              <Button size="lg" color="white" variant="filled" c="green.8" mt="xl" rightSection={<ArrowRight size={16} />}>
+                Start Shopping
+              </Button>
+            </Link>
+          </Container>
+        </Box>
       </AnimateOnScroll>
     </div>
   );

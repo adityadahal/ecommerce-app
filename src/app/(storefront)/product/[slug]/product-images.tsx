@@ -9,7 +9,7 @@ export function ProductImages({ images, name }: { images: string[]; name: string
 
   return (
     <div>
-      <div key={selected} className="product-main-image relative aspect-square overflow-hidden rounded-lg bg-gray-100">
+      <div key={selected} className="product-main-image relative aspect-square overflow-hidden rounded-xl bg-stone-100">
         <Image
           src={displayImages[selected]}
           alt={name}
@@ -27,8 +27,8 @@ export function ProductImages({ images, name }: { images: string[]; name: string
               onClick={() => setSelected(i)}
               aria-label={`View image ${i + 1} of ${name}`}
               aria-current={i === selected ? "true" : undefined}
-              className={`relative h-20 w-20 overflow-hidden rounded-md border-2 transition-all duration-200 ${
-                i === selected ? "border-primary" : "border-transparent"
+              className={`relative h-20 w-20 overflow-hidden rounded-lg border-2 transition-all duration-200 ${
+                i === selected ? "border-emerald-500" : "border-transparent hover:border-stone-300"
               }`}
             >
               <Image src={img} alt={`${name} ${i + 1}`} fill className="object-cover" sizes="80px" />
