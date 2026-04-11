@@ -15,7 +15,7 @@ export default function Error({
       <p className="mt-4 text-muted-foreground">
         {error.message || "An unexpected error occurred."}
       </p>
-      <Button onClick={reset} color="green" className="mt-6">
+      <Button onClick={reset} color="maroon" className="mt-6">
         Try Again
       </Button>
     </div>

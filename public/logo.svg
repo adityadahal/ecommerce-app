@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 200">
+  <!-- Icon section (left) -->
+  <g transform="translate(10,10) scale(0.9)">
+    <!-- Maroon circle background -->
+    <circle cx="100" cy="100" r="98" fill="#800000"/>
+
+    <!-- Laurel wreath - left branch -->
+    <g fill="#fff" opacity="0.85">
+      <ellipse cx="40" cy="152" rx="11" ry="4.5" transform="rotate(-65 40 152)"/>
+      <ellipse cx="30" cy="136" rx="11" ry="4.5" transform="rotate(-50 30 136)"/>
+      <ellipse cx="24" cy="118" rx="11" ry="4.5" transform="rotate(-30 24 118)"/>
+      <ellipse cx="22" cy="100" rx="11" ry="4.5" transform="rotate(-10 22 100)"/>
+      <ellipse cx="24" cy="82" rx="11" ry="4.5" transform="rotate(10 24 82)"/>
+      <ellipse cx="30" cy="64" rx="11" ry="4.5" transform="rotate(30 30 64)"/>
+      <ellipse cx="40" cy="50" rx="11" ry="4.5" transform="rotate(50 40 50)"/>
+      <ellipse cx="54" cy="40" rx="11" ry="4.5" transform="rotate(65 54 40)"/>
+    </g>
+
+    <!-- Laurel wreath - right branch -->
+    <g fill="#fff" opacity="0.85">
+      <ellipse cx="160" cy="152" rx="11" ry="4.5" transform="rotate(65 160 152)"/>
+      <ellipse cx="170" cy="136" rx="11" ry="4.5" transform="rotate(50 170 136)"/>
+      <ellipse cx="176" cy="118" rx="11" ry="4.5" transform="rotate(30 176 118)"/>
+      <ellipse cx="178" cy="100" rx="11" ry="4.5" transform="rotate(10 178 100)"/>
+      <ellipse cx="176" cy="82" rx="11" ry="4.5" transform="rotate(-10 176 82)"/>
+      <ellipse cx="170" cy="64" rx="11" ry="4.5" transform="rotate(-30 170 64)"/>
+      <ellipse cx="160" cy="50" rx="11" ry="4.5" transform="rotate(-50 160 50)"/>
+      <ellipse cx="146" cy="40" rx="11" ry="4.5" transform="rotate(-65 146 40)"/>
+    </g>
+
+    <!-- Wreath stems -->
+    <path d="M 48,158 Q 16,120 22,85 Q 16,50 52,34" fill="none" stroke="#fff" stroke-width="1.5" opacity="0.4"/>
+    <path d="M 152,158 Q 184,120 178,85 Q 184,50 148,34" fill="none" stroke="#fff" stroke-width="1.5" opacity="0.4"/>
+
+    <!-- Crossed Khukuri 1 -->
+    <path d="M 62,136 C 42,106 52,72 138,46 L 142,50 C 68,76 66,112 66,132 Z" fill="#fff"/>
+    <rect x="48" y="132" width="20" height="7" rx="2.5" fill="#DFA031" transform="rotate(-52 58 136)"/>
+
+    <!-- Crossed Khukuri 2 -->
+    <path d="M 138,136 C 158,106 148,72 62,46 L 58,50 C 132,76 134,112 134,132 Z" fill="#fff"/>
+    <rect x="132" y="132" width="20" height="7" rx="2.5" fill="#DFA031" transform="rotate(52 142 136)"/>
+
+    <!-- Chicken silhouette (left) -->
+    <g transform="translate(62,155)">
+      <ellipse cx="0" cy="2" rx="9" ry="10" fill="#DFA031"/>
+      <path d="M -9,-1 L -15,-4 L -9,3 Z" fill="#DFA031"/>
+      <path d="M 0,-8 Q 3,-15 0,-11 Q -3,-15 0,-8" fill="#DFA031"/>
+      <circle cx="-3" cy="-1" r="2" fill="#800000"/>
+    </g>
+
+    <!-- Cow/Bull silhouette (right) -->
+    <g transform="translate(138,155)">
+      <ellipse cx="0" cy="0" rx="9" ry="10" fill="#DFA031"/>
+      <ellipse cx="0" cy="7" rx="7" ry="4.5" fill="#DFA031"/>
+      <path d="M -8,-6 L -15,-16 L -5,-8 Z" fill="#DFA031"/>
+      <path d="M 8,-6 L 15,-16 L 5,-8 Z" fill="#DFA031"/>
+      <circle cx="-2" cy="5" r="1.2" fill="#800000"/>
+      <circle cx="2" cy="5" r="1.2" fill="#800000"/>
+      <circle cx="-3" cy="-3" r="1.8" fill="#800000"/>
+      <circle cx="3" cy="-3" r="1.8" fill="#800000"/>
+    </g>
+  </g>
+
+  <!-- Text section (right of icon) -->
+  <text x="210" y="95" font-family="Georgia, 'Times New Roman', serif" font-size="42" font-weight="bold" fill="#800000" letter-spacing="3">LUMBINI</text>
+  <text x="210" y="130" font-family="Arial, Helvetica, sans-serif" font-size="18" font-weight="600" fill="#DFA031" letter-spacing="5">MEAT &amp; GROCERY</text>
+</svg>

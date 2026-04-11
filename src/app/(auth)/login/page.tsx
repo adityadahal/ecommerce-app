@@ -3,9 +3,10 @@
 import { useState } from "react";
 import { signIn } from "next-auth/react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { Card, TextInput, PasswordInput, Button, Title, Text, Group, ThemeIcon, Alert, Box } from "@mantine/core";
-import { ShoppingCart, Lock } from "lucide-react";
+import { Lock } from "lucide-react";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -29,13 +30,14 @@ export default function LoginPage() {
       <Box ta="center" mb="lg">
         <Box hiddenFrom="lg">
           <Group justify="center" gap="xs" mb="md">
-            <ThemeIcon color="green" size="md" radius="md">
-              <ShoppingCart size={16} />
-            </ThemeIcon>
-            <Text fw={700} size="lg">Fresh<Text span c="green" inherit>Mart</Text></Text>
+            <Image src="/logo-icon.svg" alt="Lumbini" width={36} height={36} style={{ borderRadius: "var(--mantine-radius-md)" }} />
+            <Box>
+              <Text fw={700} size="sm" c="#800000" lh={1.1}>LUMBINI</Text>
+              <Text size="xs" c="#DFA031" fw={600} lh={1}>MEAT & GROCERY</Text>
+            </Box>
           </Group>
         </Box>
-        <ThemeIcon color="green" size="xl" radius="md" variant="light" mx="auto" mb="md" visibleFrom="lg">
+        <ThemeIcon color="maroon" size="xl" radius="md" variant="light" mx="auto" mb="md" visibleFrom="lg">
           <Lock size={22} />
         </ThemeIcon>
         <Title order={2}>Admin Login</Title>
@@ -44,9 +46,9 @@ export default function LoginPage() {
 
       <form onSubmit={handleSubmit}>
         {error && <Alert color="red" variant="light" mb="md">{error}</Alert>}
-        <TextInput label="Email" type="email" value={email} onChange={(e) => setEmail(e.currentTarget.value)} placeholder="admin@freshmart.com.au" required size="md" mb="sm" />
+        <TextInput label="Email" type="email" value={email} onChange={(e) => setEmail(e.currentTarget.value)} placeholder="admin@lumbinimeat.com.au" required size="md" mb="sm" />
         <PasswordInput label="Password" value={password} onChange={(e) => setPassword(e.currentTarget.value)} placeholder="Enter your password" required size="md" mb="md" />
-        <Button type="submit" fullWidth color="green" size="md" loading={loading}>
+        <Button type="submit" fullWidth color="maroon" size="md" loading={loading}>
           {loading ? "Signing in..." : "Sign In"}
         </Button>
       </form>

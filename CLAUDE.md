@@ -1,4 +1,4 @@
-# FreshMart — Grocery E-Commerce App
+# Lumbini Meat & Grocery — E-Commerce App
 
 ## Quick Reference
 - **Framework:** Next.js 16 (App Router) + TypeScript + Tailwind CSS v4
@@ -15,11 +15,18 @@
 - Customers track orders via /track page using order number
 - Auth/login is only for ADMIN users to access the dashboard
 
+## Brand & Colors
+- **Brand:** Lumbini Meat & Grocery
+- **Primary (maroon):** `#800000` — general buttons, nav, badges, theme accents
+- **Accent (gold):** `#DFA031` — conversion CTAs (Add to Cart, Checkout, Pay)
+- **Logo files:** `public/logo.svg` (full), `public/logo-icon.svg` (icon-only), `public/favicon.svg`
+- Custom Mantine color palettes: `maroon` and `gold` defined in `src/components/providers.tsx`
+
 ## UI Components (Mantine v8)
 - Import from `@mantine/core` — NOT from `@/components/ui/` (old, unused)
-- Button: `color="green"` primary, `variant="outline"` secondary, `variant="subtle"` ghost
+- Button: `color="maroon"` primary, `color="gold"` conversion CTAs, `variant="outline"` secondary, `variant="subtle"` ghost
 - TextInput, PasswordInput, NativeSelect, Textarea — use `e.currentTarget.value`
-- Badge: semantic colors — green/red/yellow/blue/gray
+- Badge: semantic colors — green/red/yellow/blue/gray; brand badge: `color="maroon"`
 - Notifications: `notifications.show({ message, color })` from `@mantine/notifications`
 - Card: `<Card shadow="sm" padding="lg" radius="md" withBorder>`
 
@@ -36,7 +43,7 @@ npm run db:seed                     # Seed sample data
 - Host: localhost:5433 | User: postgres | Pass: postgres123 | DB: mvm
 
 ## Admin Login
-- admin@freshmart.com.au / admin123
+- admin@lumbinimeat.com.au / admin123
 
 ## Stripe Test Cards
 - Success: 4242 4242 4242 4242 (any future expiry, any CVC)

@@ -12,8 +12,8 @@ export function formatPrice(price: number): string {
   }).format(price);
 }
 
+/** Calculate GST on delivery fee (10% AU GST). Product GST is set per-product by admin. */
 export function calculateGST(total: number): number {
-  // GST is 10% included in price in Australia
   return total / 11;
 }
 

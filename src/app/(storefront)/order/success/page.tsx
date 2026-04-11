@@ -1,7 +1,8 @@
 import { db } from "@/lib/db";
 import { stripe } from "@/lib/stripe";
+import { sendOrderConfirmation } from "@/lib/email";
 import { formatPrice } from "@/lib/utils";
-import { CheckCircle, Package as PackageIcon, CreditCard } from "lucide-react";
+import { CheckCircle, Package as PackageIcon, CreditCard, CalendarDays } from "lucide-react";
 import { Container, Button, Title, Text, Paper, Group, Stack, ThemeIcon } from "@mantine/core";
 import Link from "next/link";
 import { OrderSummary } from "@/components/store/order-summary";
@@ -35,40 +36,56 @@ async function verifyAndUpdatePayment(orderNumber: string) {
           } catch { /* card details retrieval failed */ }
         }
 
-        await db.order.update({ where: { id: order.id }, data: { paymentStatus: "PAID", status: "PROCESSING", stripePaymentIntentId: paymentIntentId, cardBrand, cardLast4 } });
+        const updated = await db.order.update({ where: { id: order.id }, data: { paymentStatus: "PAID", status: "PROCESSING", stripePaymentIntentId: paymentIntentId, cardBrand, cardLast4 }, include: { items: true } });
         for (const item of order.items) { await db.product.update({ where: { id: item.productId }, data: { stock: { decrement: item.quantity } } }); }
+
+        // Send confirmation email
+        if (updated.customerEmail) {
+          try {
+            await sendOrderConfirmation(
+              updated.customerEmail,
+              updated.orderNumber,
+              updated.total,
+              updated.items.map((i) => ({ name: i.name, quantity: i.quantity, price: i.price }))
+            );
+            console.log("Order confirmation email sent to", updated.customerEmail);
+          } catch (emailErr) {
+            console.error("Failed to send order confirmation email:", emailErr);
+          }
+        }
+
         return { ...order, paymentStatus: "PAID", status: "PROCESSING", cardBrand, cardLast4 };
       }
-    } catch { /* Stripe check failed */ }
+    } catch (err) { console.error("Stripe payment verification failed:", err); }
   }
   return order;
 }
 
 export default async function OrderSuccessPage({ searchParams }: Props) {
   const sp = await searchParams;
-  if (!sp.order) return <Container size={680} py={60} ta="center"><Text>Invalid order.</Text><Link href="/"><Button color="green" mt="md">Go Home</Button></Link></Container>;
+  if (!sp.order) return <Container size={680} py={60} ta="center"><Text>Invalid order.</Text><Link href="/"><Button color="maroon" mt="md">Go Home</Button></Link></Container>;
 
   const order = await verifyAndUpdatePayment(sp.order);
-  if (!order) return <Container size={680} py={60} ta="center"><Text>Order not found.</Text><Link href="/"><Button color="green" mt="md">Go Home</Button></Link></Container>;
+  if (!order) return <Container size={680} py={60} ta="center"><Text>Order not found.</Text><Link href="/"><Button color="maroon" mt="md">Go Home</Button></Link></Container>;
 
   const address = order.deliveryAddress as { street: string; suburb: string; state: string; postcode: string };
 
   return (
     <Container size={680} py={60}>
       <Stack align="center">
-        <ThemeIcon color="green" size={80} radius="xl" variant="light">
+        <ThemeIcon color="maroon" size={80} radius="xl" variant="light">
           <CheckCircle size={40} />
         </ThemeIcon>
         <Title order={1} ta="center">Order Confirmed!</Title>
         <Text c="dimmed">Thank you for your order</Text>
       </Stack>
 
-      <Paper p="lg" radius="lg" mt="xl" bg="green.0" withBorder style={{ borderColor: "var(--mantine-color-green-3)" }} ta="center">
+      <Paper p="lg" radius="lg" mt="xl" bg="maroon.0" withBorder style={{ borderColor: "var(--mantine-color-maroon-3)" }} ta="center">
         <Text size="sm" c="dimmed">Your Order Number</Text>
-        <Text size="xl" fw={700} c="green.8" ff="monospace" mt={4}>{order.orderNumber}</Text>
+        <Text size="xl" fw={700} c="maroon.8" ff="monospace" mt={4}>{order.orderNumber}</Text>
         <Text size="sm" c="dimmed" mt="xs">Save this number to track your order anytime</Text>
         <Link href={`/track?prefill=${order.orderNumber}`}>
-          <Button variant="outline" color="green" size="sm" mt="md" leftSection={<PackageIcon size={14} />}>
+          <Button variant="outline" color="maroon" size="sm" mt="md" leftSection={<PackageIcon size={14} />}>
             Track This Order
           </Button>
         </Link>
@@ -99,12 +116,20 @@ export default async function OrderSuccessPage({ searchParams }: Props) {
 
         <Text fw={500} mt="lg" mb={4}>Delivery Address</Text>
         <AddressDisplay address={address} />
-        {order.deliverySlot && (<><Text fw={500} mt="md" mb={4}>Delivery Time</Text><Text size="sm" c="dimmed">{order.deliverySlot}</Text></>)}
+        {order.deliverySlot && (
+          <>
+            <Text fw={500} mt="md" mb={4}>Estimated Delivery</Text>
+            <Group gap="xs">
+              <CalendarDays size={16} className="text-gray-400" />
+              <Text size="sm" c="dimmed">{order.deliverySlot}</Text>
+            </Group>
+          </>
+        )}
       </Paper>
 
       <Group justify="center" mt="xl">
-        <Link href="/track"><Button variant="outline" color="green">Track Order</Button></Link>
-        <Link href="/"><Button color="green">Continue Shopping</Button></Link>
+        <Link href="/track"><Button variant="outline" color="maroon">Track Order</Button></Link>
+        <Link href="/"><Button color="maroon">Continue Shopping</Button></Link>
       </Group>
     </Container>
   );

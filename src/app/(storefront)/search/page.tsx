@@ -9,7 +9,7 @@ type Props = { searchParams: Promise<{ q?: string; sort?: string; page?: string 
 
 export async function generateMetadata({ searchParams }: Props) {
   const sp = await searchParams;
-  return { title: sp.q ? `Search: ${sp.q} - FreshMart` : "Search - FreshMart" };
+  return { title: sp.q ? `Search: ${sp.q} - Lumbini Meat & Grocery` : "Search - Lumbini Meat & Grocery" };
 }
 
 export default async function SearchPage({ searchParams }: Props) {
@@ -37,7 +37,7 @@ export default async function SearchPage({ searchParams }: Props) {
       ) : (
         <SimpleGrid cols={{ base: 2, md: 3, lg: 4 }} spacing="md" mt="lg">
           {products.map((product) => (
-            <ProductCard key={product.id} id={product.id} name={product.name} slug={product.slug} price={product.price} compareAtPrice={product.compareAtPrice} images={product.images} stock={product.stock} unit={product.unit} category={product.category.name} />
+            <ProductCard key={product.id} id={product.id} name={product.name} slug={product.slug} price={product.price} gst={product.gst} compareAtPrice={product.compareAtPrice} images={product.images} stock={product.stock} unit={product.unit} category={product.category.name} />
           ))}
         </SimpleGrid>
       )}

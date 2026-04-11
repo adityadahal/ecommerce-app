@@ -3,8 +3,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { Card, TextInput, PasswordInput, Button, Title, Text } from "@mantine/core";
-import { ShoppingCart } from "lucide-react";
+import { Card, TextInput, PasswordInput, Button, Title, Text, Group, Box } from "@mantine/core";
+import Image from "next/image";
 
 export default function RegisterPage() {
   const [name, setName] = useState("");
@@ -43,14 +43,19 @@ export default function RegisterPage() {
 
   return (
     <Card shadow="sm" padding="lg" radius="md" withBorder className="w-full max-w-md">
-      <div className="text-center mb-4">
-        <Link href="/" className="mx-auto flex items-center justify-center gap-2 text-xl font-bold text-primary mb-2">
-          <ShoppingCart size={28} />
-          <span>FreshMart</span>
+      <Box ta="center" mb="md">
+        <Link href="/" style={{ textDecoration: "none" }}>
+          <Group justify="center" gap="xs" mb="md">
+            <Image src="/logo-icon.svg" alt="Lumbini" width={36} height={36} style={{ borderRadius: "var(--mantine-radius-md)" }} />
+            <Box>
+              <Text fw={700} size="sm" c="#800000" lh={1.1}>LUMBINI</Text>
+              <Text size="xs" c="#DFA031" fw={600} lh={1}>MEAT & GROCERY</Text>
+            </Box>
+          </Group>
         </Link>
         <Title order={3} className="text-2xl">Create an account</Title>
-        <Text c="dimmed" size="sm">Get started with FreshMart</Text>
-      </div>
+        <Text c="dimmed" size="sm">Get started with Lumbini Meat & Grocery</Text>
+      </Box>
       <form onSubmit={handleSubmit} className="space-y-4">
         {error && (
           <div className="rounded-md bg-red-50 p-3 text-sm text-red-600">
@@ -86,7 +91,7 @@ export default function RegisterPage() {
           />
           <p className="mt-1 text-xs text-gray-500">Minimum 8 characters</p>
         </div>
-        <Button type="submit" fullWidth color="green" disabled={loading}>
+        <Button type="submit" fullWidth color="maroon" disabled={loading}>
           {loading ? "Creating account..." : "Create Account"}
         </Button>
       </form>

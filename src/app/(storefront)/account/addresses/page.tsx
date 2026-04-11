@@ -22,19 +22,19 @@ export default function AddressesPage() {
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault();
     const res = await fetch("/api/addresses", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ street, suburb, state, postcode, isDefault: addresses.length === 0 }) });
-    if (res.ok) { notifications.show({ message: "Address added", color: "green" }); setShowForm(false); setStreet(""); setSuburb(""); setState("VIC"); setPostcode(""); fetchAddresses(); }
+    if (res.ok) { notifications.show({ message: "Address added", color: "maroon" }); setShowForm(false); setStreet(""); setSuburb(""); setState("VIC"); setPostcode(""); fetchAddresses(); }
   };
 
   const handleDelete = async (id: string) => {
     const res = await fetch(`/api/addresses/${id}`, { method: "DELETE" });
-    if (res.ok) { notifications.show({ message: "Address removed", color: "green" }); fetchAddresses(); }
+    if (res.ok) { notifications.show({ message: "Address removed", color: "maroon" }); fetchAddresses(); }
   };
 
   return (
     <div>
       <Group justify="space-between" mb="lg">
         <Title order={2}>My Addresses</Title>
-        <Button color="green" size="sm" leftSection={<Plus size={14} />} onClick={() => setShowForm(!showForm)}>Add Address</Button>
+        <Button color="maroon" size="sm" leftSection={<Plus size={14} />} onClick={() => setShowForm(!showForm)}>Add Address</Button>
       </Group>
 
       {showForm && (
@@ -48,7 +48,7 @@ export default function AddressesPage() {
                 <TextInput value={postcode} onChange={(e) => setPostcode(e.currentTarget.value)} placeholder="Postcode" maxLength={4} required />
               </Group>
               <Group>
-                <Button type="submit" color="green" size="sm">Save</Button>
+                <Button type="submit" color="maroon" size="sm">Save</Button>
                 <Button type="button" variant="default" size="sm" onClick={() => setShowForm(false)}>Cancel</Button>
               </Group>
             </Stack>
@@ -65,7 +65,7 @@ export default function AddressesPage() {
                 <Text size="sm" c="dimmed">{addr.suburb} {addr.state} {addr.postcode}</Text>
               </div>
               <Group gap="xs">
-                {addr.isDefault && <Badge color="green">Default</Badge>}
+                {addr.isDefault && <Badge color="maroon">Default</Badge>}
                 <ActionIcon variant="subtle" color="red" onClick={() => handleDelete(addr.id)}><Trash2 size={16} /></ActionIcon>
               </Group>
             </Group>

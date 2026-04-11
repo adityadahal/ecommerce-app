@@ -23,17 +23,17 @@ export function OrderSummary({
         <Text size="sm" fw={500}>{formatPrice(subtotal)}</Text>
       </Group>
       <Group justify="space-between">
-        <Text size="sm" c="dimmed">GST (included)</Text>
+        <Text size="sm" c="dimmed">GST</Text>
         <Text size="sm" fw={500}>{formatPrice(gst)}</Text>
       </Group>
       <Group justify="space-between">
         <Text size="sm" c="dimmed">Delivery</Text>
-        <Text size="sm" fw={500} c={deliveryFee === 0 ? "green" : undefined}>
+        <Text size="sm" fw={500} c={deliveryFee === 0 ? "maroon" : undefined}>
           {deliveryFee === 0 ? "FREE" : formatPrice(deliveryFee)}
         </Text>
       </Group>
       {showFreeDeliveryHint && deliveryFee > 0 && (
-        <Alert color="green" variant="light" p="xs">
+        <Alert color="maroon" variant="light" p="xs">
           <Text size="xs">Add ${(75 - subtotal).toFixed(2)} more for free delivery!</Text>
         </Alert>
       )}

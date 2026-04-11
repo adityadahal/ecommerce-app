@@ -16,7 +16,7 @@ export async function generateMetadata({ params }: Props) {
   const { slug } = await params;
   const category = await db.category.findUnique({ where: { slug } });
   if (!category) return {};
-  return { title: `${category.name} - FreshMart`, description: `Shop fresh ${category.name.toLowerCase()} online at FreshMart.` };
+  return { title: `${category.name} - Lumbini Meat & Grocery`, description: `Shop fresh ${category.name.toLowerCase()} online at Lumbini Meat & Grocery.` };
 }
 
 export default async function CategoryPage({ params, searchParams }: Props) {
@@ -52,7 +52,7 @@ export default async function CategoryPage({ params, searchParams }: Props) {
   return (
     <Container size={1280} py="xl">
       <Group gap={8} mb="sm">
-        <Link href="/" style={{ textDecoration: "none", color: "var(--mantine-color-green-6)" }}><Text size="sm">Home</Text></Link>
+        <Link href="/" style={{ textDecoration: "none", color: "#800000" }}><Text size="sm">Home</Text></Link>
         <Text size="sm" c="dimmed">/</Text>
         <Text size="sm" c="dimmed">{category.name}</Text>
       </Group>
@@ -63,7 +63,7 @@ export default async function CategoryPage({ params, searchParams }: Props) {
         <Group gap="xs" mt="md">
           {category.children.map((sub) => (
             <Link key={sub.id} href={`/category/${sub.slug}`} style={{ textDecoration: "none" }}>
-              <Badge variant="outline" color="green" size="lg" style={{ cursor: "pointer" }}>
+              <Badge variant="outline" color="maroon" size="lg" style={{ cursor: "pointer" }}>
                 {sub.name}
               </Badge>
             </Link>
@@ -78,7 +78,7 @@ export default async function CategoryPage({ params, searchParams }: Props) {
       ) : (
         <SimpleGrid cols={{ base: 2, md: 3, lg: 4 }} spacing="md">
           {products.map((product) => (
-            <ProductCard key={product.id} id={product.id} name={product.name} slug={product.slug} price={product.price} compareAtPrice={product.compareAtPrice} images={product.images} stock={product.stock} unit={product.unit} category={product.category.name} />
+            <ProductCard key={product.id} id={product.id} name={product.name} slug={product.slug} price={product.price} gst={product.gst} compareAtPrice={product.compareAtPrice} images={product.images} stock={product.stock} unit={product.unit} category={product.category.name} />
           ))}
         </SimpleGrid>
       )}

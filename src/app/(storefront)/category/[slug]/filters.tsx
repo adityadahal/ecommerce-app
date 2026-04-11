@@ -41,7 +41,7 @@ export function CategoryFilters() {
           label="In Stock Only"
           checked={searchParams.get("inStock") === "true"}
           onChange={(e) => updateParams("inStock", e.currentTarget.checked ? "true" : "")}
-          color="green"
+          color="maroon"
         />
       </Group>
     </Paper>

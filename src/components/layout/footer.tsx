@@ -1,6 +1,6 @@
 import Link from "next/link";
-import { Container, SimpleGrid, Stack, Text, Group, Divider, ThemeIcon, Box } from "@mantine/core";
-import { ShoppingCart } from "lucide-react";
+import Image from "next/image";
+import { Container, SimpleGrid, Stack, Text, Group, Divider, Box } from "@mantine/core";
 
 export function Footer() {
   return (
@@ -10,16 +10,15 @@ export function Footer() {
           <Stack gap="sm">
             <Link href="/" style={{ textDecoration: "none" }}>
               <Group gap="xs">
-                <ThemeIcon color="green" size="md" radius="md">
-                  <ShoppingCart size={16} />
-                </ThemeIcon>
-                <Text fw={700} size="lg" c="white">
-                  Fresh<Text span c="green.4" inherit>Mart</Text>
-                </Text>
+                <Image src="/logo-icon.svg" alt="Lumbini" width={36} height={36} style={{ borderRadius: "var(--mantine-radius-md)" }} />
+                <Box>
+                  <Text fw={700} size="sm" c="white" lh={1.1}>LUMBINI</Text>
+                  <Text size="xs" c="#DFA031" fw={600} lh={1}>MEAT & GROCERY</Text>
+                </Box>
               </Group>
             </Link>
             <Text size="sm" c="gray.5" mt="xs">
-              Fresh groceries delivered to your door. Quality products at great prices, serving the Australian community.
+              Fresh meat and groceries delivered to your door. Quality products at great prices, serving the Australian community.
             </Text>
           </Stack>
 
@@ -44,7 +43,7 @@ export function Footer() {
           <Stack gap="xs">
             <Text fw={600} c="white" mb="xs">Contact</Text>
             <Text size="sm">Melbourne, VIC 3000</Text>
-            <Text size="sm">support@freshmart.com.au</Text>
+            <Text size="sm">support@lumbinimeat.com.au</Text>
             <Text size="sm">(03) 9123 4567</Text>
             <Text size="sm">Mon-Sat: 8am - 8pm</Text>
           </Stack>
@@ -52,7 +51,7 @@ export function Footer() {
 
         <Divider my="xl" color="dark.6" />
         <Text size="sm" c="gray.6" ta="center">
-          &copy; {new Date().getFullYear()} FreshMart. All rights reserved. ABN 12 345 678 901
+          &copy; {new Date().getFullYear()} Lumbini Meat &amp; Grocery. All rights reserved. ABN 12 345 678 901
         </Text>
       </Container>
     </Box>

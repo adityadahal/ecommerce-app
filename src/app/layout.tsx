@@ -10,9 +10,15 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "FreshMart - Fresh Groceries Delivered",
-  description: "Shop fresh groceries online with home delivery across Melbourne. Quality fruits, vegetables, dairy, meat, and pantry essentials.",
-  keywords: ["groceries", "online shopping", "fresh food", "delivery", "Melbourne", "Australia"],
+  title: "Lumbini Meat & Grocery — Fresh Meat & Groceries Delivered",
+  description: "Shop fresh meat, groceries, and essentials online with home delivery across Melbourne. Quality fruits, vegetables, dairy, meat, and pantry staples.",
+  keywords: ["groceries", "meat", "online shopping", "fresh food", "delivery", "Melbourne", "Australia", "Lumbini"],
+  icons: {
+    icon: [
+      { url: "/favicon.svg", type: "image/svg+xml" },
+    ],
+    apple: "/logo-icon.svg",
+  },
 };
 
 export default function RootLayout({

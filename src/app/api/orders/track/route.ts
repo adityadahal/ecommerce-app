@@ -24,6 +24,9 @@ export async function GET(request: Request) {
       customerName: true,
       cardBrand: true,
       cardLast4: true,
+      refundStatus: true,
+      refundedAt: true,
+      refundAmount: true,
       createdAt: true,
       items: {
         select: {

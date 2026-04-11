@@ -18,6 +18,7 @@ export default function EditProductPage() {
   const [slug, setSlug] = useState("");
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
+  const [gst, setGst] = useState("");
   const [compareAtPrice, setCompareAtPrice] = useState("");
   const [categoryId, setCategoryId] = useState("");
   const [stock, setStock] = useState("0");
@@ -36,6 +37,7 @@ export default function EditProductPage() {
       setSlug(product.slug);
       setDescription(product.description || "");
       setPrice(product.price.toString());
+      setGst(product.gst?.toString() || "0");
       setCompareAtPrice(product.compareAtPrice?.toString() || "");
       setCategoryId(product.categoryId);
       setStock(product.stock.toString());
@@ -56,6 +58,7 @@ export default function EditProductPage() {
       body: JSON.stringify({
         name, slug, description,
         price: parseFloat(price),
+        gst: gst ? parseFloat(gst) : 0,
         compareAtPrice: compareAtPrice ? parseFloat(compareAtPrice) : null,
         categoryId, stock: parseInt(stock), unit,
         images: images.split("\n").filter(Boolean),
@@ -64,7 +67,7 @@ export default function EditProductPage() {
     });
 
     if (res.ok) {
-      notifications.show({ message: "Product updated", color: "green" });
+      notifications.show({ message: "Product updated", color: "maroon" });
       router.push("/dashboard/products");
     } else {
       notifications.show({ message: "Failed to update", color: "red" });
@@ -77,7 +80,7 @@ export default function EditProductPage() {
     setDeleting(true);
     const res = await fetch(`/api/admin/products/${params.id}`, { method: "DELETE" });
     if (res.ok) {
-      notifications.show({ message: "Product deleted", color: "green" });
+      notifications.show({ message: "Product deleted", color: "maroon" });
       router.push("/dashboard/products");
     } else {
       notifications.show({ message: "Failed to delete", color: "red" });
@@ -94,8 +97,9 @@ export default function EditProductPage() {
           <TextInput label="Slug" value={slug} onChange={(e) => setSlug(e.currentTarget.value)} required />
         </div>
         <Textarea label="Description" value={description} onChange={(e) => setDescription(e.currentTarget.value)} rows={3} />
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-4 gap-4">
           <TextInput label="Price (AUD)" type="number" step="0.01" value={price} onChange={(e) => setPrice(e.currentTarget.value)} required />
+          <TextInput label="GST ($)" type="number" step="0.01" min="0" value={gst} onChange={(e) => setGst(e.currentTarget.value)} description="0 = GST free" />
           <TextInput label="Compare At Price" type="number" step="0.01" value={compareAtPrice} onChange={(e) => setCompareAtPrice(e.currentTarget.value)} />
           <NativeSelect
             label="Unit"
@@ -134,7 +138,7 @@ export default function EditProductPage() {
           </label>
         </div>
         <div className="flex gap-2">
-          <Button type="submit" color="green" disabled={loading}>{loading ? "Saving..." : "Save Changes"}</Button>
+          <Button type="submit" color="maroon" disabled={loading}>{loading ? "Saving..." : "Save Changes"}</Button>
           <Button type="button" variant="outline" onClick={() => router.back()}>Cancel</Button>
           <Button type="button" color="red" onClick={handleDelete} disabled={deleting} className="ml-auto">
             {deleting ? "Deleting..." : "Delete"}

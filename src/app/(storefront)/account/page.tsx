@@ -23,7 +23,7 @@ export default function AccountProfilePage() {
     setLoading(true);
     try {
       const res = await fetch("/api/profile", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name, phone }) });
-      if (res.ok) { await update({ name }); notifications.show({ message: "Profile updated", color: "green" }); }
+      if (res.ok) { await update({ name }); notifications.show({ message: "Profile updated", color: "maroon" }); }
     } catch { notifications.show({ message: "Failed to update profile", color: "red" }); }
     setLoading(false);
   };
@@ -36,7 +36,7 @@ export default function AccountProfilePage() {
           <TextInput label="Email" value={session?.user?.email || ""} disabled />
           <TextInput label="Full Name" value={name} onChange={(e) => setName(e.currentTarget.value)} />
           <TextInput label="Phone" value={phone} onChange={(e) => setPhone(e.currentTarget.value)} placeholder="04xx xxx xxx" />
-          <Button type="submit" color="green" loading={loading}>{loading ? "Saving..." : "Save Changes"}</Button>
+          <Button type="submit" color="maroon" loading={loading}>{loading ? "Saving..." : "Save Changes"}</Button>
         </Stack>
       </form>
     </div>

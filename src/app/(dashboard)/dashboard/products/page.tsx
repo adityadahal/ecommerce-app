@@ -7,6 +7,9 @@ import { notifications } from "@mantine/notifications";
 import { Plus, Pencil, Trash2, PackagePlus, Check, X } from "lucide-react";
 import { ProductModal } from "@/components/dashboard/product-modal";
 import { ConfirmModal } from "@/components/dashboard/confirm-modal";
+import { TablePagination } from "@/components/dashboard/table-pagination";
+
+type Pagination = { page: number; limit: number; total: number; totalPages: number };
 
 type Product = {
   id: string;
@@ -15,6 +18,7 @@ type Product = {
   description: string | null;
   unit: string;
   price: number;
+  gst: number;
   compareAtPrice: number | null;
   stock: number;
   isActive: boolean;
@@ -39,7 +43,7 @@ function RestockPopover({ product, onUpdated }: { product: Product; onUpdated: (
       body: JSON.stringify({ stock: product.stock + qty }),
     });
     if (res.ok) {
-      notifications.show({ message: `Added ${qty} to ${product.name}`, color: "green" });
+      notifications.show({ message: `Added ${qty} to ${product.name}`, color: "maroon" });
       setOpened(false);
       setAddQty(0);
       onUpdated();
@@ -52,7 +56,7 @@ function RestockPopover({ product, onUpdated }: { product: Product; onUpdated: (
   return (
     <Popover opened={opened} onChange={setOpened} position="bottom" withArrow shadow="md">
       <Popover.Target>
-        <ActionIcon variant="light" color="green" size="sm" onClick={() => setOpened(true)} title="Add stock">
+        <ActionIcon variant="light" color="maroon" size="sm" onClick={() => setOpened(true)} title="Add stock">
           <PackagePlus size={14} />
         </ActionIcon>
       </Popover.Target>
@@ -68,7 +72,7 @@ function RestockPopover({ product, onUpdated }: { product: Product; onUpdated: (
             w={80}
             placeholder="Qty"
           />
-          <ActionIcon color="green" size="md" onClick={handleSave} loading={saving} disabled={!addQty || addQty <= 0}>
+          <ActionIcon color="maroon" size="md" onClick={handleSave} loading={saving} disabled={!addQty || addQty <= 0}>
             <Check size={14} />
           </ActionIcon>
           <ActionIcon variant="subtle" color="gray" size="md" onClick={() => { setOpened(false); setAddQty(0); }}>
@@ -83,22 +87,26 @@ function RestockPopover({ product, onUpdated }: { product: Product; onUpdated: (
 
 export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
+  const [pagination, setPagination] = useState<Pagination>({ page: 1, limit: 10, total: 0, totalPages: 1 });
   const [loading, setLoading] = useState(true);
   const [modalOpen, setModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Product | null>(null);
   const [deleting, setDeleting] = useState(false);
 
-  const fetchProducts = () => {
+  const fetchProducts = (page = pagination.page, limit = pagination.limit) => {
     setLoading(true);
-    fetch("/api/admin/products")
+    fetch(`/api/admin/products?page=${page}&limit=${limit}`)
       .then((r) => r.json())
-      .then(setProducts)
+      .then((data) => {
+        setProducts(data.products);
+        setPagination(data.pagination);
+      })
       .catch(() => notifications.show({ message: "Failed to load products", color: "red" }))
       .finally(() => setLoading(false));
   };
 
-  useEffect(() => { fetchProducts(); }, []);
+  useEffect(() => { fetchProducts(1, pagination.limit); }, []);
 
   const openCreate = () => { setEditingProduct(null); setModalOpen(true); };
   const openEdit = (product: Product) => { setEditingProduct(product); setModalOpen(true); };
@@ -108,7 +116,7 @@ export default function ProductsPage() {
     setDeleting(true);
     const res = await fetch(`/api/admin/products/${deleteTarget.id}`, { method: "DELETE" });
     if (res.ok) {
-      notifications.show({ message: "Product deleted", color: "green" });
+      notifications.show({ message: "Product deleted", color: "maroon" });
       setDeleteTarget(null);
       fetchProducts();
     } else {
@@ -122,9 +130,9 @@ export default function ProductsPage() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-stone-900">Products</h1>
-          <p className="text-sm text-stone-500">{loading ? "..." : `${products.length} products`}</p>
+          <p className="text-sm text-stone-500">{loading ? "..." : `${pagination.total} products`}</p>
         </div>
-        <Button color="green" leftSection={<Plus size={16} />} onClick={openCreate}>Add Product</Button>
+        <Button color="maroon" leftSection={<Plus size={16} />} onClick={openCreate}>Add Product</Button>
       </div>
 
       <Card shadow="sm" radius="lg" withBorder p={0} className="border-stone-200 bg-white rounded-xl">
@@ -134,6 +142,7 @@ export default function ProductsPage() {
               <Table.Th className="text-stone-600">Product</Table.Th>
               <Table.Th className="text-stone-600">Category</Table.Th>
               <Table.Th className="text-stone-600">Price</Table.Th>
+              <Table.Th className="text-stone-600">GST</Table.Th>
               <Table.Th className="text-stone-600">Stock</Table.Th>
               <Table.Th className="text-stone-600">Status</Table.Th>
               <Table.Th className="text-stone-600">Actions</Table.Th>
@@ -143,14 +152,14 @@ export default function ProductsPage() {
             {loading ? (
               Array.from({ length: 5 }).map((_, i) => (
                 <Table.Tr key={i}>
-                  {Array.from({ length: 6 }).map((_, j) => (
+                  {Array.from({ length: 7 }).map((_, j) => (
                     <Table.Td key={j}><Skeleton height={20} radius="sm" /></Table.Td>
                   ))}
                 </Table.Tr>
               ))
             ) : products.length === 0 ? (
               <Table.Tr>
-                <Table.Td colSpan={6}>
+                <Table.Td colSpan={7}>
                   <Text ta="center" py="xl" className="text-stone-400">No products yet</Text>
                 </Table.Td>
               </Table.Tr>
@@ -167,6 +176,9 @@ export default function ProductsPage() {
                     {product.compareAtPrice && (
                       <Text size="xs" className="text-stone-400" td="line-through">{formatPrice(product.compareAtPrice)}</Text>
                     )}
+                  </Table.Td>
+                  <Table.Td>
+                    <Text size="sm" className="text-stone-700">{product.gst > 0 ? formatPrice(product.gst) : <Text span size="xs" c="dimmed">Free</Text>}</Text>
                   </Table.Td>
                   <Table.Td>
                     <Group gap={6} wrap="nowrap">
@@ -196,7 +208,16 @@ export default function ProductsPage() {
         </Table>
       </Card>
 
-      <ProductModal opened={modalOpen} onClose={() => setModalOpen(false)} onSaved={fetchProducts} product={editingProduct} />
+      <TablePagination
+        page={pagination.page}
+        limit={pagination.limit}
+        total={pagination.total}
+        totalPages={pagination.totalPages}
+        onPageChange={(p) => fetchProducts(p, pagination.limit)}
+        onLimitChange={(l) => fetchProducts(1, l)}
+      />
+
+      <ProductModal opened={modalOpen} onClose={() => setModalOpen(false)} onSaved={() => fetchProducts(pagination.page, pagination.limit)} product={editingProduct} />
 
       <ConfirmModal
         opened={!!deleteTarget}

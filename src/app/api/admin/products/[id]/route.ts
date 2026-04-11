@@ -36,6 +36,7 @@ export async function PUT(
       slug: data.slug,
       description: data.description,
       price: typeof data.price === "number" ? data.price : parseFloat(data.price),
+      gst: typeof data.gst === "number" ? data.gst : parseFloat(data.gst) || 0,
       compareAtPrice: data.compareAtPrice ? parseFloat(data.compareAtPrice) : null,
       images: Array.isArray(data.images) ? data.images : [],
       categoryId: data.categoryId,

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { useSession, signOut } from "next-auth/react";
 import { ShoppingCart, User, Package, LayoutDashboard, LogOut } from "lucide-react";
 import { Group, Text, Button, ActionIcon, Indicator, Menu, Burger, Collapse, ThemeIcon, Anchor, Box, Divider } from "@mantine/core";
@@ -28,7 +29,7 @@ export function Header() {
         py={6}
         ta="center"
         c="white"
-        style={{ background: "linear-gradient(to right, #047857, #0f766e)" }}
+        style={{ background: "linear-gradient(to right, #800000, #6a0000)" }}
       >
         <Text size="xs" fw={500} inherit>
           Free delivery on orders over $75 &bull; Same-day delivery for orders before 2pm
@@ -45,13 +46,12 @@ export function Header() {
           <Group gap="md" wrap="nowrap">
             <Burger opened={mobileOpen} onClick={toggleMobile} hiddenFrom="lg" size="sm" />
             <Anchor component={Link} href="/" underline="never">
-              <Group gap="xs" wrap="nowrap">
-                <ThemeIcon color="green" size="md" radius="md">
-                  <ShoppingCart size={16} />
-                </ThemeIcon>
-                <Text fw={700} size="lg" c="dark">
-                  Fresh<Text span c="green" inherit>Mart</Text>
-                </Text>
+              <Group gap={8} wrap="nowrap">
+                <Image src="/logo-icon.svg" alt="Lumbini" width={36} height={36} style={{ borderRadius: "var(--mantine-radius-md)" }} />
+                <Box>
+                  <Text fw={700} size="sm" c="#800000" lh={1.1}>LUMBINI</Text>
+                  <Text size="xs" c="#DFA031" fw={600} lh={1}>MEAT & GROCERY</Text>
+                </Box>
               </Group>
             </Anchor>
           </Group>
@@ -59,7 +59,7 @@ export function Header() {
           {/* Desktop nav */}
           <Group gap={4} visibleFrom="lg">
             {navLinks.map((link) => (
-              <Anchor key={link.href} component={Link} href={link.href} underline="never" c="dark" size="sm" fw={500} px="sm" py="xs" style={{ borderRadius: "var(--mantine-radius-md)" }} className="hover:bg-[var(--mantine-color-green-0)]">
+              <Anchor key={link.href} component={Link} href={link.href} underline="never" c="dark" size="sm" fw={500} px="sm" py="xs" style={{ borderRadius: "var(--mantine-radius-md)" }} className="hover:bg-[var(--mantine-color-maroon-0)]">
                 {link.label}
               </Anchor>
             ))}
@@ -78,7 +78,7 @@ export function Header() {
               </Button>
             </Box>
 
-            <Indicator color="green" label={itemCount} size={18} disabled={itemCount === 0} offset={4}>
+            <Indicator color="maroon" label={itemCount} size={18} disabled={itemCount === 0} offset={4}>
               <ActionIcon component={Link} href="/cart" variant="subtle" color="gray" size="lg">
                 <ShoppingCart size={20} />
               </ActionIcon>
@@ -89,7 +89,7 @@ export function Header() {
               <Menu shadow="md" width={220} position="bottom-end">
                 <Menu.Target>
                   <ActionIcon variant="subtle" color="gray" size="lg">
-                    <ThemeIcon color="green" size="sm" radius="xl" variant="light">
+                    <ThemeIcon color="maroon" size="sm" radius="xl" variant="light">
                       <User size={14} />
                     </ThemeIcon>
                   </ActionIcon>

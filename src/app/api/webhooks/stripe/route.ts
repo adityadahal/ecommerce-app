@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { stripe } from "@/lib/stripe";
 import { db } from "@/lib/db";
+import { sendOrderConfirmation } from "@/lib/email";
 import Stripe from "stripe";
 
 export async function POST(request: Request) {
@@ -72,7 +73,15 @@ export async function POST(request: Request) {
           });
         }
 
-        // TODO: Send order confirmation email via Resend
+        // Send order confirmation email
+        if (order.customerEmail) {
+          await sendOrderConfirmation(
+            order.customerEmail,
+            order.orderNumber,
+            order.total,
+            order.items.map((i) => ({ name: i.name, quantity: i.quantity, price: i.price }))
+          );
+        }
       }
       break;
     }
@@ -86,6 +95,59 @@ export async function POST(request: Request) {
           where: { id: metadata.orderId },
           data: { paymentStatus: "FAILED" },
         });
+      }
+      break;
+    }
+
+    case "charge.refunded": {
+      const charge = event.data.object as Stripe.Charge;
+      const paymentIntentId =
+        typeof charge.payment_intent === "string"
+          ? charge.payment_intent
+          : charge.payment_intent?.id;
+
+      if (paymentIntentId) {
+        const order = await db.order.findFirst({
+          where: { stripePaymentIntentId: paymentIntentId },
+          include: { items: true },
+        });
+
+        if (order && order.refundStatus !== "REFUNDED") {
+          // Update refund status
+          await db.order.update({
+            where: { id: order.id },
+            data: {
+              refundStatus: "REFUNDED",
+              paymentStatus: "REFUNDED",
+              refundedAt: new Date(),
+              refundAmount: (charge.amount_refunded ?? 0) / 100,
+            },
+          });
+
+          // Restore stock for each order item
+          for (const item of order.items) {
+            await db.product.update({
+              where: { id: item.productId },
+              data: { stock: { increment: item.quantity } },
+            });
+          }
+        }
+      }
+      break;
+    }
+
+    case "charge.refund.updated": {
+      const refund = event.data.object as Stripe.Refund;
+      if (refund.status === "failed" && refund.id) {
+        const order = await db.order.findFirst({
+          where: { stripeRefundId: refund.id },
+        });
+        if (order) {
+          await db.order.update({
+            where: { id: order.id },
+            data: { refundStatus: "FAILED" },
+          });
+        }
       }
       break;
     }

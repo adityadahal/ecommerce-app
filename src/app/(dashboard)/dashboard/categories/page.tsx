@@ -6,6 +6,7 @@ import { notifications } from "@mantine/notifications";
 import { Plus, Trash2, Pencil } from "lucide-react";
 import { CategoryModal } from "@/components/dashboard/category-modal";
 import { ConfirmModal } from "@/components/dashboard/confirm-modal";
+import { TablePagination } from "@/components/dashboard/table-pagination";
 
 type Category = {
   id: string;
@@ -17,18 +18,27 @@ type Category = {
   children: { id: string; name: string; slug: string }[];
 };
 
+type Pagination = { page: number; limit: number; total: number; totalPages: number };
+
 export default function CategoriesAdminPage() {
   const [categories, setCategories] = useState<Category[]>([]);
+  const [pagination, setPagination] = useState<Pagination>({ page: 1, limit: 10, total: 0, totalPages: 1 });
   const [modalOpen, setModalOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<Category | null>(null);
   const [deleting, setDeleting] = useState(false);
 
-  const fetchCategories = () => {
-    fetch("/api/admin/categories").then((r) => r.json()).then(setCategories).catch(() => {});
+  const fetchCategories = (page = pagination.page, limit = pagination.limit) => {
+    fetch(`/api/admin/categories?page=${page}&limit=${limit}`)
+      .then((r) => r.json())
+      .then((data) => {
+        setCategories(data.categories);
+        setPagination(data.pagination);
+      })
+      .catch(() => {});
   };
 
-  useEffect(() => { fetchCategories(); }, []);
+  useEffect(() => { fetchCategories(1, pagination.limit); }, []);
 
   const openCreate = () => { setEditingCategory(null); setModalOpen(true); };
   const openEdit = (cat: Category) => { setEditingCategory(cat); setModalOpen(true); };
@@ -38,25 +48,23 @@ export default function CategoriesAdminPage() {
     setDeleting(true);
     const res = await fetch(`/api/admin/categories/${deleteTarget.id}`, { method: "DELETE" });
     if (res.ok) {
-      notifications.show({ message: "Category deleted", color: "green" });
+      notifications.show({ message: "Category deleted", color: "maroon" });
       setDeleteTarget(null);
-      fetchCategories();
+      fetchCategories(pagination.page, pagination.limit);
     } else {
       notifications.show({ message: "Cannot delete category with products", color: "red" });
     }
     setDeleting(false);
   };
 
-  const rootCategories = categories.filter((c) => !c.parentId);
-
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-stone-900">Categories</h1>
-          <p className="text-sm text-stone-500">{rootCategories.length} categories</p>
+          <p className="text-sm text-stone-500">{pagination.total} categories</p>
         </div>
-        <Button color="green" leftSection={<Plus size={16} />} onClick={openCreate}>Add Category</Button>
+        <Button color="maroon" leftSection={<Plus size={16} />} onClick={openCreate}>Add Category</Button>
       </div>
 
       <Card shadow="sm" radius="lg" withBorder p={0} className="border-stone-200 bg-white rounded-xl">
@@ -71,7 +79,7 @@ export default function CategoriesAdminPage() {
             </Table.Tr>
           </Table.Thead>
           <Table.Tbody>
-            {rootCategories.map((cat) => (
+            {categories.map((cat) => (
               <Table.Tr key={cat.id} className="hover:bg-stone-50">
                 <Table.Td>
                   <Text size="sm" fw={500} className="text-stone-700">
@@ -90,7 +98,7 @@ export default function CategoriesAdminPage() {
                 </Table.Td>
               </Table.Tr>
             ))}
-            {rootCategories.length === 0 && (
+            {categories.length === 0 && (
               <Table.Tr>
                 <Table.Td colSpan={5}>
                   <Text ta="center" py="xl" className="text-stone-400">No categories yet</Text>
@@ -101,7 +109,16 @@ export default function CategoriesAdminPage() {
         </Table>
       </Card>
 
-      <CategoryModal opened={modalOpen} onClose={() => setModalOpen(false)} onSaved={fetchCategories} category={editingCategory} />
+      <TablePagination
+        page={pagination.page}
+        limit={pagination.limit}
+        total={pagination.total}
+        totalPages={pagination.totalPages}
+        onPageChange={(p) => fetchCategories(p, pagination.limit)}
+        onLimitChange={(l) => fetchCategories(1, l)}
+      />
+
+      <CategoryModal opened={modalOpen} onClose={() => setModalOpen(false)} onSaved={() => fetchCategories(pagination.page, pagination.limit)} category={editingCategory} />
 
       <ConfirmModal
         opened={!!deleteTarget}

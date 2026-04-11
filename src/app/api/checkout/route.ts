@@ -2,13 +2,20 @@ import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { stripe } from "@/lib/stripe";
 import { generateOrderNumber } from "@/lib/utils";
+import { getNextDeliveryDate, formatDeliveryDate } from "@/lib/constants";
 
 export async function POST(request: Request) {
   try {
-    const { items, address, deliverySlot, customerName, customerEmail, customerPhone } = await request.json();
+    const { items, address, deliveryZoneId, customerName, customerEmail, customerPhone } = await request.json();
 
-    if (!items?.length || !address || !customerName || !customerEmail || !customerPhone) {
+    if (!items?.length || !address || !customerName || !customerEmail || !customerPhone || !deliveryZoneId) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
+    }
+
+    // Fetch delivery zone
+    const zone = await db.deliveryZone.findUnique({ where: { id: deliveryZoneId } });
+    if (!zone || !zone.isActive) {
+      return NextResponse.json({ error: "Invalid delivery zone" }, { status: 400 });
     }
 
     // Fetch products and validate
@@ -23,6 +30,7 @@ export async function POST(request: Request) {
 
     // Calculate totals
     let subtotal = 0;
+    let itemGstTotal = 0;
     const lineItems = [];
     const orderItems = [];
     const productMap = new Map(products.map((p) => [p.id, p]));
@@ -39,6 +47,7 @@ export async function POST(request: Request) {
 
       const itemTotal = product.price * item.quantity;
       subtotal += itemTotal;
+      itemGstTotal += product.gst * item.quantity;
 
       lineItems.push({
         price_data: {
@@ -58,14 +67,21 @@ export async function POST(request: Request) {
         productId: product.id,
         name: product.name,
         price: product.price,
+        gst: product.gst,
         quantity: item.quantity,
         image: product.images[0] || null,
       });
     }
 
-    const deliveryFee = subtotal >= 75 ? 0 : 9.95;
+    // Calculate delivery fee from zone
+    const deliveryFee = zone.minOrderForFree && subtotal >= zone.minOrderForFree ? 0 : zone.deliveryFee;
     const total = subtotal + deliveryFee;
-    const gst = total / 11;
+    const deliveryGst = deliveryFee / 11;
+    const gst = parseFloat((itemGstTotal + deliveryGst).toFixed(2));
+
+    // Compute estimated delivery day
+    const estimatedDate = getNextDeliveryDate(zone.availableDays);
+    const deliverySlot = estimatedDate ? formatDeliveryDate(estimatedDate) : null;
 
     // Add delivery fee as line item if applicable
     if (deliveryFee > 0) {
@@ -79,7 +95,7 @@ export async function POST(request: Request) {
       });
     }
 
-    // Create order (no userId required for guest orders)
+    // Create order
     const order = await db.order.create({
       data: {
         orderNumber: generateOrderNumber(),
@@ -91,6 +107,7 @@ export async function POST(request: Request) {
         total,
         deliveryAddress: address,
         deliverySlot,
+        deliveryZoneId: zone.id,
         customerName,
         customerEmail,
         customerPhone,

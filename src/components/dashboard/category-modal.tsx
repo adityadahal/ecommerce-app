@@ -55,7 +55,7 @@ export function CategoryModal({ opened, onClose, onSaved, category }: Props) {
     });
 
     if (res.ok) {
-      notifications.show({ message: isEditing ? "Category updated" : "Category created", color: "green" });
+      notifications.show({ message: isEditing ? "Category updated" : "Category created", color: "maroon" });
       onSaved();
       onClose();
     } else {
@@ -78,7 +78,7 @@ export function CategoryModal({ opened, onClose, onSaved, category }: Props) {
         <TextInput label="Image / Emoji" value={image} onChange={(e) => setImage(e.currentTarget.value)} placeholder="🍎 or image URL" />
         <Group justify="space-between">
           <Group>
-            <Button type="submit" color="green" loading={loading}>{isEditing ? "Save Changes" : "Create"}</Button>
+            <Button type="submit" color="maroon" loading={loading}>{isEditing ? "Save Changes" : "Create"}</Button>
             <Button type="button" variant="default" onClick={onClose}>Cancel</Button>
           </Group>
         </Group>

@@ -14,6 +14,7 @@ type Product = {
   slug: string;
   description: string | null;
   price: number;
+  gst: number;
   compareAtPrice: number | null;
   categoryId: string;
   stock: number;
@@ -50,6 +51,7 @@ export function ProductModal({ opened, onClose, onSaved, product }: Props) {
   const [slug, setSlug] = useState("");
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
+  const [gst, setGst] = useState("");
   const [compareAtPrice, setCompareAtPrice] = useState("");
   const [categoryId, setCategoryId] = useState<string | null>("");
   const [stock, setStock] = useState("0");
@@ -70,6 +72,7 @@ export function ProductModal({ opened, onClose, onSaved, product }: Props) {
       setSlug(product.slug);
       setDescription(product.description || "");
       setPrice(product.price.toString());
+      setGst(product.gst?.toString() || "0");
       setCompareAtPrice(product.compareAtPrice?.toString() || "");
       setCategoryId(product.categoryId);
       setStock(product.stock.toString());
@@ -78,7 +81,7 @@ export function ProductModal({ opened, onClose, onSaved, product }: Props) {
       setIsActive(product.isActive);
       setIsFeatured(product.isFeatured);
     } else if (opened) {
-      setName(""); setSlug(""); setDescription(""); setPrice(""); setCompareAtPrice("");
+      setName(""); setSlug(""); setDescription(""); setPrice(""); setGst(""); setCompareAtPrice("");
       setCategoryId(""); setStock("0"); setUnit("each"); setImageUrls([]);
       setIsActive(true); setIsFeatured(false);
     }
@@ -87,6 +90,11 @@ export function ProductModal({ opened, onClose, onSaved, product }: Props) {
   useEffect(() => {
     if (!isEditing && name) setSlug(slugify(name));
   }, [name, isEditing]);
+
+  useEffect(() => {
+    if (!isEditing && price) setGst((parseFloat(price) / 11).toFixed(2));
+    else if (!isEditing && !price) setGst("");
+  }, [price, isEditing]);
 
   const handleUpload = async (files: FileList | null) => {
     if (!files || files.length === 0) return;
@@ -102,7 +110,7 @@ export function ProductModal({ opened, onClose, onSaved, product }: Props) {
       const data = await res.json();
       if (res.ok) {
         setImageUrls((prev) => [...prev, ...data.urls]);
-        notifications.show({ message: `${data.urls.length} image(s) uploaded`, color: "green" });
+        notifications.show({ message: `${data.urls.length} image(s) uploaded`, color: "maroon" });
       } else {
         notifications.show({ message: data.error || "Upload failed", color: "red" });
       }
@@ -140,6 +148,7 @@ export function ProductModal({ opened, onClose, onSaved, product }: Props) {
       body: JSON.stringify({
         name, slug, description,
         price: parseFloat(price),
+        gst: gst ? parseFloat(gst) : 0,
         compareAtPrice: compareAtPrice ? parseFloat(compareAtPrice) : null,
         categoryId, stock: parseInt(stock), unit,
         images: imageUrls,
@@ -148,7 +157,7 @@ export function ProductModal({ opened, onClose, onSaved, product }: Props) {
     });
 
     if (res.ok) {
-      notifications.show({ message: isEditing ? "Product updated" : "Product created", color: "green" });
+      notifications.show({ message: isEditing ? "Product updated" : "Product created", color: "maroon" });
       onSaved();
       onClose();
     } else {
@@ -172,8 +181,9 @@ export function ProductModal({ opened, onClose, onSaved, product }: Props) {
           <TextInput label="Slug" value={slug} onChange={(e) => setSlug(e.currentTarget.value)} required />
         </div>
         <Textarea label="Description" value={description} onChange={(e) => setDescription(e.currentTarget.value)} rows={3} />
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-4 gap-4">
           <TextInput label="Price (AUD)" type="number" step="0.01" value={price} onChange={(e) => setPrice(e.currentTarget.value)} required />
+          <TextInput label="GST ($)" type="number" step="0.01" min="0" value={gst} onChange={(e) => setGst(e.currentTarget.value)} placeholder="0 = free" />
           <TextInput label="Compare At Price" type="number" step="0.01" value={compareAtPrice} onChange={(e) => setCompareAtPrice(e.currentTarget.value)} />
           <Select
             label="Unit"
@@ -216,7 +226,7 @@ export function ProductModal({ opened, onClose, onSaved, product }: Props) {
                     </ActionIcon>
                   </div>
                   {index === 0 && (
-                    <div className="absolute top-1 left-1 bg-green-600 text-white text-[10px] px-1.5 py-0.5 rounded">
+                    <div className="absolute top-1 left-1 bg-[#800000] text-white text-[10px] px-1.5 py-0.5 rounded">
                       Main
                     </div>
                   )}
@@ -251,7 +261,7 @@ export function ProductModal({ opened, onClose, onSaved, product }: Props) {
           <Checkbox label="Featured" checked={isFeatured} onChange={(e) => setIsFeatured(e.currentTarget.checked)} />
         </Group>
         <Group>
-          <Button type="submit" color="green" loading={loading}>{isEditing ? "Save Changes" : "Create Product"}</Button>
+          <Button type="submit" color="maroon" loading={loading}>{isEditing ? "Save Changes" : "Create Product"}</Button>
           <Button type="button" variant="default" onClick={onClose}>Cancel</Button>
         </Group>
       </form>

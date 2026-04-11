@@ -46,7 +46,7 @@ export default async function HomePage() {
       <Box
         pos="relative"
         py={{ base: 60, md: 80 }}
-        style={{ overflow: "hidden", background: "linear-gradient(135deg, #059669 0%, #047857 50%, #0f766e 100%)" }}
+        style={{ overflow: "hidden", background: "linear-gradient(135deg, #800000 0%, #5c0000 50%, #3d0000 100%)" }}
       >
         <Box pos="absolute" top={0} right={0} w={500} h={500} style={{ borderRadius: "50%", background: "rgba(255,255,255,0.05)", transform: "translate(25%,-25%)" }} />
         <Box pos="absolute" bottom={0} left={0} w={320} h={320} style={{ borderRadius: "50%", background: "rgba(255,255,255,0.05)", transform: "translate(-25%,33%)" }} />
@@ -58,14 +58,14 @@ export default async function HomePage() {
             </Text>
             <Title order={1} c="white" fz={{ base: 36, md: 48, lg: 56 }} lh={1.1}>
               Fresh Groceries,<br />
-              <Text span c="green.2" inherit>Delivered to You</Text>
+              <Text span c="maroon.2" inherit>Delivered to You</Text>
             </Title>
-            <Text size="lg" c="green.1" mt="lg" maw={480} style={{ opacity: 0.8 }}>
+            <Text size="lg" c="maroon.1" mt="lg" maw={480} style={{ opacity: 0.8 }}>
               Shop quality fruits, vegetables, dairy, meat, and pantry essentials from local suppliers.
             </Text>
             <Group mt="xl" gap="md">
               <Link href="/category/fruits-vegetables">
-                <Button size="lg" color="white" variant="filled" c="green.8" rightSection={<ArrowRight size={16} />}>
+                <Button size="lg" color="white" variant="filled" c="maroon.8" rightSection={<ArrowRight size={16} />}>
                   Shop Now
                 </Button>
               </Link>
@@ -84,7 +84,7 @@ export default async function HomePage() {
         <Container size={1280} py="lg">
           <SimpleGrid cols={{ base: 2, md: 4 }} spacing="lg">
             {[
-              { icon: Truck, title: "Free Delivery", desc: "On orders over $75", color: "green" },
+              { icon: Truck, title: "Free Delivery", desc: "On orders over $75", color: "maroon" },
               { icon: Leaf, title: "Fresh Quality", desc: "Farm to your door", color: "teal" },
               { icon: Clock, title: "Same Day", desc: "Order before 2pm", color: "yellow" },
               { icon: Shield, title: "Secure Payment", desc: "100% secure checkout", color: "blue" },
@@ -114,7 +114,7 @@ export default async function HomePage() {
                   <Link href={`/category/${cat.slug}`} style={{ textDecoration: "none", color: "inherit" }}>
                     <Card shadow="sm" padding="lg" radius="lg" className="transition-all duration-300 hover:shadow-md hover:-translate-y-1">
                       <Stack align="center" gap="sm">
-                        <ThemeIcon color="green" size={60} radius="xl" variant="light">
+                        <ThemeIcon color="maroon" size={60} radius="xl" variant="light">
                           <Text fz={28}>{cat.image || "🛒"}</Text>
                         </ThemeIcon>
                         <Text fw={600} size="sm" ta="center">{cat.name}</Text>
@@ -136,7 +136,7 @@ export default async function HomePage() {
               <Group justify="space-between" mb="lg">
                 <Title order={2}>Featured Products</Title>
                 <Link href="/search">
-                  <Button variant="subtle" color="green" size="sm" rightSection={<ArrowRight size={14} />}>
+                  <Button variant="subtle" color="maroon" size="sm" rightSection={<ArrowRight size={14} />}>
                     View All
                   </Button>
                 </Link>
@@ -146,7 +146,7 @@ export default async function HomePage() {
                   <div key={product.id} style={{ transitionDelay: `${index * 75}ms` }} className="transition-all duration-500 ease-out">
                     <ProductCard
                       id={product.id} name={product.name} slug={product.slug}
-                      price={product.price} compareAtPrice={product.compareAtPrice}
+                      price={product.price} gst={product.gst} compareAtPrice={product.compareAtPrice}
                       images={product.images} stock={product.stock} unit={product.unit}
                       category={product.category.name}
                     />
@@ -172,7 +172,7 @@ export default async function HomePage() {
                   <div key={product.id} style={{ transitionDelay: `${index * 75}ms` }} className="transition-all duration-500 ease-out">
                     <ProductCard
                       id={product.id} name={product.name} slug={product.slug}
-                      price={product.price} compareAtPrice={product.compareAtPrice}
+                      price={product.price} gst={product.gst} compareAtPrice={product.compareAtPrice}
                       images={product.images} stock={product.stock} unit={product.unit}
                       category={product.category.name}
                     />
@@ -186,14 +186,14 @@ export default async function HomePage() {
 
       {/* CTA */}
       <AnimateOnScroll>
-        <Box py={60} ta="center" style={{ background: "linear-gradient(to right, #059669, #0f766e)" }}>
+        <Box py={60} ta="center" style={{ background: "linear-gradient(to right, #800000, #5c0000)" }}>
           <Container size={600}>
             <Title order={2} c="white">Ready to Shop?</Title>
-            <Text c="green.1" mt="sm" style={{ opacity: 0.8 }}>
+            <Text c="maroon.1" mt="sm" style={{ opacity: 0.8 }}>
               Browse our full range of fresh groceries and get them delivered today.
             </Text>
             <Link href="/category/fruits-vegetables">
-              <Button size="lg" color="white" variant="filled" c="green.8" mt="xl" rightSection={<ArrowRight size={16} />}>
+              <Button size="lg" color="white" variant="filled" c="maroon.8" mt="xl" rightSection={<ArrowRight size={16} />}>
                 Start Shopping
               </Button>
             </Link>

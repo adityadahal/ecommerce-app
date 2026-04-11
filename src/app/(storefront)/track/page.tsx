@@ -6,7 +6,7 @@ import { formatPrice } from "@/lib/utils";
 import { OrderSummary } from "@/components/store/order-summary";
 import { AddressDisplay } from "@/components/store/address-display";
 import { ORDER_STATUS_STEPS } from "@/lib/constants";
-import { Search, XCircle, Package, CreditCard } from "lucide-react";
+import { Search, XCircle, Package, CreditCard, RotateCcw, CalendarDays } from "lucide-react";
 
 type OrderData = {
   orderNumber: string; status: string; paymentStatus: string;
@@ -14,6 +14,7 @@ type OrderData = {
   deliveryAddress: { street: string; suburb: string; state: string; postcode: string };
   deliverySlot: string | null; customerName: string | null; createdAt: string;
   cardBrand: string | null; cardLast4: string | null;
+  refundStatus: string; refundedAt: string | null; refundAmount: number | null;
   items: { id: string; name: string; price: number; quantity: number }[];
 };
 
@@ -41,7 +42,7 @@ export default function TrackOrderPage() {
   return (
     <Container size={680} py="xl">
       <Stack align="center" mb="xl">
-        <ThemeIcon color="green" size={64} radius="xl" variant="light">
+        <ThemeIcon color="maroon" size={64} radius="xl" variant="light">
           <Package size={28} />
         </ThemeIcon>
         <Title order={1} ta="center">Track Your Order</Title>
@@ -51,7 +52,7 @@ export default function TrackOrderPage() {
       <form onSubmit={handleTrack}>
         <Group gap="sm">
           <TextInput value={orderNumber} onChange={(e) => setOrderNumber(e.currentTarget.value)} placeholder="Enter order number (e.g. MVM-L5K2F-A3B1)" style={{ flex: 1 }} size="md" />
-          <Button type="submit" disabled={loading} color="green" size="md" leftSection={<Search size={16} />}>
+          <Button type="submit" disabled={loading} color="maroon" size="md" leftSection={<Search size={16} />}>
             {loading ? "Searching..." : "Track"}
           </Button>
         </Group>
@@ -78,9 +79,30 @@ export default function TrackOrderPage() {
           <Paper p="lg" radius="lg" withBorder>
             <Text fw={600} mb="md">Order Status</Text>
             {isCancelled ? (
-              <Alert color="red" variant="light" icon={<XCircle size={20} />}>
-                <Text fw={500} size="lg">Order Cancelled</Text>
-              </Alert>
+              <Stack gap="sm">
+                <Alert color="red" variant="light" icon={<XCircle size={20} />}>
+                  <Text fw={500} size="lg">Order Cancelled</Text>
+                </Alert>
+                {order.refundStatus === "REFUNDED" && (
+                  <Alert color="green" variant="light" icon={<RotateCcw size={20} />}>
+                    <Text fw={500}>Refund of {formatPrice(order.refundAmount ?? order.total)} issued</Text>
+                    <Text size="sm" c="dimmed" mt={4}>
+                      {order.cardBrand && order.cardLast4
+                        ? `Refunded to your ${order.cardBrand} ending in ${order.cardLast4}. `
+                        : ""}
+                      Please allow 5–10 business days for the refund to appear on your statement.
+                    </Text>
+                  </Alert>
+                )}
+                {order.refundStatus === "PENDING" && (
+                  <Alert color="yellow" variant="light" icon={<RotateCcw size={20} />}>
+                    <Text fw={500}>Refund is being processed</Text>
+                    <Text size="sm" c="dimmed" mt={4}>
+                      Your refund is on its way. Please allow a few business days for it to appear on your statement.
+                    </Text>
+                  </Alert>
+                )}
+              </Stack>
             ) : (
               <div className="flex items-center">
                 {ORDER_STATUS_STEPS.map((step, i) => {
@@ -92,22 +114,22 @@ export default function TrackOrderPage() {
                     <div key={step.key} className="flex items-center flex-1 last:flex-initial">
                       <div className="flex flex-col items-center gap-2">
                         <ThemeIcon
-                          color={isComplete ? "green" : "gray"}
+                          color={isComplete ? "maroon" : "gray"}
                           variant={isComplete ? "filled" : "light"}
                           size="lg"
                           radius="xl"
                           className={isCurrent ? "step-active-pulse" : ""}
-                          style={isCurrent ? { ring: "2px solid var(--mantine-color-green-6)", ringOffset: "2px" } : undefined}
+                          style={isCurrent ? { ring: "2px solid #800000", ringOffset: "2px" } : undefined}
                         >
                           <StepIcon size={18} />
                         </ThemeIcon>
-                        <Text size="xs" ta="center" c={isComplete ? "green" : "dimmed"} fw={isComplete ? 500 : 400}>
+                        <Text size="xs" ta="center" c={isComplete ? "maroon" : "dimmed"} fw={isComplete ? 500 : 400}>
                           {step.label}
                         </Text>
                       </div>
                       {i < ORDER_STATUS_STEPS.length - 1 && (
                         <div className="flex-1 mx-2 self-start mt-5" style={{ height: 2, background: "var(--mantine-color-gray-3)", position: "relative", overflow: "hidden" }}>
-                          <div style={{ position: "absolute", inset: 0, background: "var(--mantine-color-green-6)", transformOrigin: "left", transform: isLineComplete ? "scaleX(1)" : "scaleX(0)", transition: "transform 0.7s" }} />
+                          <div style={{ position: "absolute", inset: 0, background: "#800000", transformOrigin: "left", transform: isLineComplete ? "scaleX(1)" : "scaleX(0)", transition: "transform 0.7s" }} />
                         </div>
                       )}
                     </div>
@@ -143,7 +165,12 @@ export default function TrackOrderPage() {
           <Paper p="lg" radius="lg" withBorder>
             <Text fw={600} mb="xs">Delivery</Text>
             <AddressDisplay address={order.deliveryAddress} multiline />
-            {order.deliverySlot && <Text size="sm" c="dimmed" mt="xs">Time slot: {order.deliverySlot}</Text>}
+            {order.deliverySlot && (
+              <Group gap="xs" mt="xs">
+                <CalendarDays size={14} className="text-gray-400" />
+                <Text size="sm" c="dimmed">Estimated delivery: {order.deliverySlot}</Text>
+              </Group>
+            )}
           </Paper>
         </Stack>
       )}

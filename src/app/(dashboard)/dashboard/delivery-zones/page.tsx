@@ -1,12 +1,18 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Button, Table, Card, Text } from "@mantine/core";
+import { Button, Table, Card, Text, Badge, Group } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import { Plus, Trash2, Pencil } from "lucide-react";
 import { formatPrice } from "@/lib/utils";
 import { DeliveryZoneModal } from "@/components/dashboard/delivery-zone-modal";
 import { ConfirmModal } from "@/components/dashboard/confirm-modal";
+import { TablePagination } from "@/components/dashboard/table-pagination";
+
+const DAY_SHORT: Record<string, string> = {
+  MONDAY: "Mon", TUESDAY: "Tue", WEDNESDAY: "Wed", THURSDAY: "Thu",
+  FRIDAY: "Fri", SATURDAY: "Sat", SUNDAY: "Sun",
+};
 
 type DeliveryZone = {
   id: string;
@@ -15,21 +21,31 @@ type DeliveryZone = {
   postcodeTo: string;
   deliveryFee: number;
   minOrderForFree: number | null;
+  availableDays: string[];
   isActive: boolean;
 };
 
+type Pagination = { page: number; limit: number; total: number; totalPages: number };
+
 export default function DeliveryZonesPage() {
   const [zones, setZones] = useState<DeliveryZone[]>([]);
+  const [pagination, setPagination] = useState<Pagination>({ page: 1, limit: 10, total: 0, totalPages: 1 });
   const [modalOpen, setModalOpen] = useState(false);
   const [editingZone, setEditingZone] = useState<DeliveryZone | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<DeliveryZone | null>(null);
   const [deleting, setDeleting] = useState(false);
 
-  const fetchZones = () => {
-    fetch("/api/admin/delivery-zones").then((r) => r.json()).then(setZones).catch(() => {});
+  const fetchZones = (page = pagination.page, limit = pagination.limit) => {
+    fetch(`/api/admin/delivery-zones?page=${page}&limit=${limit}`)
+      .then((r) => r.json())
+      .then((data) => {
+        setZones(data.zones);
+        setPagination(data.pagination);
+      })
+      .catch(() => {});
   };
 
-  useEffect(() => { fetchZones(); }, []);
+  useEffect(() => { fetchZones(1, pagination.limit); }, []);
 
   const openCreate = () => { setEditingZone(null); setModalOpen(true); };
   const openEdit = (zone: DeliveryZone) => { setEditingZone(zone); setModalOpen(true); };
@@ -39,9 +55,9 @@ export default function DeliveryZonesPage() {
     setDeleting(true);
     const res = await fetch(`/api/admin/delivery-zones/${deleteTarget.id}`, { method: "DELETE" });
     if (res.ok) {
-      notifications.show({ message: "Delivery zone deleted", color: "green" });
+      notifications.show({ message: "Delivery zone deleted", color: "maroon" });
       setDeleteTarget(null);
-      fetchZones();
+      fetchZones(pagination.page, pagination.limit);
     } else {
       notifications.show({ message: "Failed to delete zone", color: "red" });
     }
@@ -53,9 +69,9 @@ export default function DeliveryZonesPage() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-stone-900">Delivery Zones</h1>
-          <p className="text-sm text-stone-500">{zones.length} zones</p>
+          <p className="text-sm text-stone-500">{pagination.total} zones</p>
         </div>
-        <Button color="green" leftSection={<Plus size={16} />} onClick={openCreate}>Add Zone</Button>
+        <Button color="maroon" leftSection={<Plus size={16} />} onClick={openCreate}>Add Zone</Button>
       </div>
 
       <Card shadow="sm" radius="lg" withBorder p={0} className="border-stone-200 bg-white rounded-xl">
@@ -66,6 +82,7 @@ export default function DeliveryZonesPage() {
               <Table.Th className="text-stone-600">Postcodes</Table.Th>
               <Table.Th className="text-stone-600">Delivery Fee</Table.Th>
               <Table.Th className="text-stone-600">Free Delivery Min</Table.Th>
+              <Table.Th className="text-stone-600">Delivery Days</Table.Th>
               <Table.Th className="text-stone-600">Status</Table.Th>
               <Table.Th className="text-stone-600">Actions</Table.Th>
             </Table.Tr>
@@ -77,6 +94,16 @@ export default function DeliveryZonesPage() {
                 <Table.Td><Text size="sm" className="text-stone-700">{zone.postcodeFrom} - {zone.postcodeTo}</Text></Table.Td>
                 <Table.Td><Text size="sm" className="text-stone-700">{formatPrice(zone.deliveryFee)}</Text></Table.Td>
                 <Table.Td><Text size="sm" className="text-stone-700">{zone.minOrderForFree ? formatPrice(zone.minOrderForFree) : "-"}</Text></Table.Td>
+                <Table.Td>
+                  <Group gap={4}>
+                    {zone.availableDays?.length > 0
+                      ? zone.availableDays.map((day) => (
+                          <Badge key={day} size="xs" variant="light" color="blue">{DAY_SHORT[day] || day}</Badge>
+                        ))
+                      : <Text size="xs" c="dimmed">None</Text>
+                    }
+                  </Group>
+                </Table.Td>
                 <Table.Td>
                   {zone.isActive ? (
                     <span className="inline-flex items-center px-2 py-0.5 rounded-lg text-xs font-medium bg-emerald-100 text-emerald-700">Active</span>
@@ -94,7 +121,7 @@ export default function DeliveryZonesPage() {
             ))}
             {zones.length === 0 && (
               <Table.Tr>
-                <Table.Td colSpan={6}>
+                <Table.Td colSpan={7}>
                   <Text ta="center" py="xl" className="text-stone-400">No delivery zones configured</Text>
                 </Table.Td>
               </Table.Tr>
@@ -103,7 +130,16 @@ export default function DeliveryZonesPage() {
         </Table>
       </Card>
 
-      <DeliveryZoneModal opened={modalOpen} onClose={() => setModalOpen(false)} onSaved={fetchZones} zone={editingZone} />
+      <TablePagination
+        page={pagination.page}
+        limit={pagination.limit}
+        total={pagination.total}
+        totalPages={pagination.totalPages}
+        onPageChange={(p) => fetchZones(p, pagination.limit)}
+        onLimitChange={(l) => fetchZones(1, l)}
+      />
+
+      <DeliveryZoneModal opened={modalOpen} onClose={() => setModalOpen(false)} onSaved={() => fetchZones(pagination.page, pagination.limit)} zone={editingZone} />
 
       <ConfirmModal
         opened={!!deleteTarget}

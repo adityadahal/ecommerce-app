@@ -1,8 +1,28 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Modal, Button, TextInput, Group } from "@mantine/core";
+import { Modal, Button, TextInput, Group, Checkbox, Text } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
+
+const DAYS_OF_WEEK = [
+  "MONDAY",
+  "TUESDAY",
+  "WEDNESDAY",
+  "THURSDAY",
+  "FRIDAY",
+  "SATURDAY",
+  "SUNDAY",
+] as const;
+
+const DAY_LABELS: Record<string, string> = {
+  MONDAY: "Mon",
+  TUESDAY: "Tue",
+  WEDNESDAY: "Wed",
+  THURSDAY: "Thu",
+  FRIDAY: "Fri",
+  SATURDAY: "Sat",
+  SUNDAY: "Sun",
+};
 
 type DeliveryZone = {
   id: string;
@@ -11,6 +31,7 @@ type DeliveryZone = {
   postcodeTo: string;
   deliveryFee: number;
   minOrderForFree: number | null;
+  availableDays: string[];
 };
 
 type Props = {
@@ -29,6 +50,7 @@ export function DeliveryZoneModal({ opened, onClose, onSaved, zone }: Props) {
   const [postcodeTo, setPostcodeTo] = useState("");
   const [deliveryFee, setDeliveryFee] = useState("9.95");
   const [minOrderForFree, setMinOrderForFree] = useState("75");
+  const [availableDays, setAvailableDays] = useState<string[]>([]);
 
   useEffect(() => {
     if (opened && zone) {
@@ -37,11 +59,19 @@ export function DeliveryZoneModal({ opened, onClose, onSaved, zone }: Props) {
       setPostcodeTo(zone.postcodeTo);
       setDeliveryFee(zone.deliveryFee.toString());
       setMinOrderForFree(zone.minOrderForFree?.toString() || "");
+      setAvailableDays(zone.availableDays || []);
     } else if (opened) {
       setName(""); setPostcodeFrom(""); setPostcodeTo("");
       setDeliveryFee("9.95"); setMinOrderForFree("75");
+      setAvailableDays([]);
     }
   }, [opened, zone]);
+
+  const toggleDay = (day: string) => {
+    setAvailableDays((prev) =>
+      prev.includes(day) ? prev.filter((d) => d !== day) : [...prev, day]
+    );
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -59,11 +89,12 @@ export function DeliveryZoneModal({ opened, onClose, onSaved, zone }: Props) {
         postcodeTo,
         deliveryFee: parseFloat(deliveryFee),
         minOrderForFree: minOrderForFree ? parseFloat(minOrderForFree) : null,
+        availableDays,
       }),
     });
 
     if (res.ok) {
-      notifications.show({ message: isEditing ? "Zone updated" : "Zone created", color: "green" });
+      notifications.show({ message: isEditing ? "Zone updated" : "Zone created", color: "maroon" });
       onSaved();
       onClose();
     } else {
@@ -90,8 +121,24 @@ export function DeliveryZoneModal({ opened, onClose, onSaved, zone }: Props) {
           <TextInput label="Delivery Fee ($)" type="number" step="0.01" value={deliveryFee} onChange={(e) => setDeliveryFee(e.currentTarget.value)} placeholder="9.95" required />
           <TextInput label="Free Delivery Min ($)" type="number" step="0.01" value={minOrderForFree} onChange={(e) => setMinOrderForFree(e.currentTarget.value)} placeholder="75" />
         </div>
+
+        <div>
+          <Text size="sm" fw={500} mb={8}>Available Delivery Days</Text>
+          <Group gap="sm">
+            {DAYS_OF_WEEK.map((day) => (
+              <Checkbox
+                key={day}
+                label={DAY_LABELS[day]}
+                checked={availableDays.includes(day)}
+                onChange={() => toggleDay(day)}
+                color="maroon"
+              />
+            ))}
+          </Group>
+        </div>
+
         <Group>
-          <Button type="submit" color="green" loading={loading}>{isEditing ? "Save Changes" : "Create Zone"}</Button>
+          <Button type="submit" color="maroon" loading={loading}>{isEditing ? "Save Changes" : "Create Zone"}</Button>
           <Button type="button" variant="default" onClick={onClose}>Cancel</Button>
         </Group>
       </form>

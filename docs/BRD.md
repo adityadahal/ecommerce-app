@@ -1,9 +1,9 @@
 # Business Requirements Document (BRD)
 # FreshMart — Grocery Store E-Commerce Application
 
-**Version:** 2.1
+**Version:** 2.2
 **Date:** 22 March 2026
-**Last Updated:** 23 March 2026
+**Last Updated:** 11 April 2026
 **Author:** Aditya Kishor Dahal
 
 ---
@@ -104,9 +104,9 @@ FreshMart provides a custom-built, self-hosted solution with:
 | PAY-11 | Store card details (brand + last 4 digits) on order | Done |
 | PAY-12 | Store Stripe Payment Intent ID for refunds      | Done   |
 | PAY-13 | Display card info on order success, track, admin, account pages | Done |
-| PAY-14 | Auto-refund via Stripe when order is cancelled  | Planned |
-| PAY-15 | Refund status tracking (NONE → PENDING → REFUNDED → FAILED) | Planned |
-| PAY-16 | Stripe webhook: charge.refunded → update refund status | Planned |
+| PAY-14 | Auto-refund via Stripe when order is cancelled  | Done   |
+| PAY-15 | Refund status tracking (NONE → PENDING → REFUNDED → FAILED) | Done   |
+| PAY-16 | Stripe webhook: charge.refunded → update refund status | Done   |
 | PAY-17 | Apple Pay / Google Pay / Afterpay               | Planned (Stripe config) |
 
 ### 5.5 Order Tracking (Public)
@@ -117,6 +117,7 @@ FreshMart provides a custom-built, self-hosted solution with:
 | TRK-3 | Visual status tracker (Placed → Processing → Out for Delivery → Delivered) | Done |
 | TRK-4 | Track API (GET /api/orders/track?order=XXX)     | Done   |
 | TRK-5 | "Track Order" button in header and footer       | Done   |
+| TRK-6 | Refund status alerts on track page (pending/refunded) | Done   |
 
 ### 5.6 ~~Customer Account~~ (Removed)
 _Customers no longer need accounts. The account pages (profile, orders, addresses) are legacy and may be removed._
@@ -139,6 +140,8 @@ _Customers no longer need accounts. The account pages (profile, orders, addresse
 | ADM-5 | Order status flow: Pending → Processing → Out for Delivery → Delivered | Done |
 | ADM-6 | Delivery zone management (postcode ranges, fees) | Done   |
 | ADM-7 | Low stock alerts                                 | Done   |
+| ADM-8a | Refund confirmation modal on order cancellation  | Done   |
+| ADM-8b | Refund status badge in order rows (Pending/Refunded/Failed) | Done |
 | ADM-8 | Bulk product upload via CSV                      | Planned |
 | ADM-9 | Image upload to Cloudinary                       | Planned |
 
@@ -199,6 +202,7 @@ Order
 ├── subtotal, deliveryFee, gst, total
 ├── deliveryAddress (JSON), deliverySlot, stripeSessionId
 ├── stripePaymentIntentId, cardBrand, cardLast4 (payment details)
+├── refundStatus, refundedAt, refundAmount, stripeRefundId (refund details)
 ├── customerName, customerEmail, customerPhone (guest info)
 └── → OrderItem[]
 
@@ -209,6 +213,7 @@ DeliveryZone
 ### Enums
 - **OrderStatus:** PENDING → PROCESSING → OUT_FOR_DELIVERY → DELIVERED | CANCELLED
 - **PaymentStatus:** PENDING → PAID | FAILED | REFUNDED
+- **RefundStatus:** NONE → PENDING → REFUNDED | FAILED
 - **Role:** CUSTOMER | ADMIN
 
 ---
@@ -281,9 +286,11 @@ DeliveryZone
 | Password | Admin passwords: minimum 8 characters, hashed with bcrypt (12 rounds) |
 | Admin Access | Only users with role=ADMIN can access `/dashboard/*` |
 | Card Details | Card brand and last 4 digits are captured from Stripe on successful payment and stored on the order |
-| Refund on Cancel | When admin cancels a PAID order, a full refund is issued automatically via Stripe Refunds API (Planned) |
+| Refund on Cancel | When admin cancels a PAID order, a full refund is issued automatically via Stripe Refunds API. Confirmation modal shown before proceeding |
 | Refund Eligibility | Only orders with paymentStatus=PAID and a stored stripePaymentIntentId can be refunded |
-| Stock Restoration | When a paid order is cancelled and refunded, stock should be restored (incremented back) |
+| Stock Restoration | When a paid order is cancelled and refunded, stock is restored via the `charge.refunded` webhook |
+| Refund Double Protection | Refund blocked if `refundStatus !== NONE` — prevents duplicate refunds |
+| Refund Failure Handling | If Stripe refund fails, `refundStatus` set to FAILED and order is NOT cancelled |
 
 ### Stripe Test Cards
 | Card Number | Result |
@@ -358,7 +365,7 @@ See `.env.example` for all required variables.
 
 | Priority | Feature                                |
 |----------|----------------------------------------|
-| High     | Auto-refund on order cancellation (see [REFUND-PROCESS.md](REFUND-PROCESS.md)) |
+| ~~High~~ | ~~Auto-refund on order cancellation~~ → Done (see [REFUND-PROCESS.md](REFUND-PROCESS.md)) |
 | High     | DB-backed cart for logged-in users     |
 | High     | Cloudinary image upload in admin       |
 | High     | CSV bulk product import                |

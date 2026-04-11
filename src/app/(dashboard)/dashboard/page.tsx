@@ -2,21 +2,35 @@ import { db } from "@/lib/db";
 import { formatPrice } from "@/lib/utils";
 import Link from "next/link";
 import { Card, Text, Title, Group, SimpleGrid, ThemeIcon, Badge, Stack, Button } from "@mantine/core";
-import { ShoppingBag, DollarSign, Package, Truck, ArrowRight } from "lucide-react";
+import { ShoppingBag, DollarSign, Package, Truck, ArrowRight, RotateCcw } from "lucide-react";
 
 export const dynamic = "force-dynamic";
 
 async function getStats() {
   const today = new Date(); today.setHours(0, 0, 0, 0);
-  const [totalOrders, todayOrders, totalRevenue, todayRevenue, totalProducts, pendingDeliveries] = await Promise.all([
-    db.order.count(),
-    db.order.count({ where: { createdAt: { gte: today } } }),
-    db.order.aggregate({ _sum: { total: true }, where: { paymentStatus: "PAID" } }),
-    db.order.aggregate({ _sum: { total: true }, where: { paymentStatus: "PAID", createdAt: { gte: today } } }),
+  const notCancelled = { status: { not: "CANCELLED" as const } };
+  const [totalOrders, todayOrders, totalRevenue, todayRevenue, totalProducts, pendingDeliveries, totalRefunded, todayRefunded, pendingRefunds] = await Promise.all([
+    db.order.count({ where: notCancelled }),
+    db.order.count({ where: { ...notCancelled, createdAt: { gte: today } } }),
+    db.order.aggregate({ _sum: { total: true }, where: { paymentStatus: "PAID", ...notCancelled } }),
+    db.order.aggregate({ _sum: { total: true }, where: { paymentStatus: "PAID", ...notCancelled, createdAt: { gte: today } } }),
     db.product.count({ where: { isActive: true } }),
     db.order.count({ where: { status: { in: ["PROCESSING", "OUT_FOR_DELIVERY"] } } }),
+    db.order.aggregate({ _sum: { refundAmount: true }, _count: true, where: { refundStatus: "REFUNDED" } }),
+    db.order.aggregate({ _sum: { refundAmount: true }, _count: true, where: { refundStatus: "REFUNDED", refundedAt: { gte: today } } }),
+    db.order.count({ where: { refundStatus: "PENDING" } }),
   ]);
-  return { totalOrders, todayOrders, totalRevenue: totalRevenue._sum.total || 0, todayRevenue: todayRevenue._sum.total || 0, totalProducts, pendingDeliveries };
+  return {
+    totalOrders, todayOrders,
+    totalRevenue: totalRevenue._sum.total || 0,
+    todayRevenue: todayRevenue._sum.total || 0,
+    totalProducts, pendingDeliveries,
+    totalRefunded: totalRefunded._sum.refundAmount || 0,
+    refundedCount: totalRefunded._count,
+    todayRefunded: todayRefunded._sum.refundAmount || 0,
+    todayRefundedCount: todayRefunded._count,
+    pendingRefunds,
+  };
 }
 
 async function getRecentOrders() {
@@ -28,8 +42,9 @@ async function getLowStockProducts() {
 }
 
 const statCards = [
-  { key: "orders", label: "Today's Orders", icon: ShoppingBag, color: "green" },
+  { key: "orders", label: "Today's Orders", icon: ShoppingBag, color: "maroon" },
   { key: "revenue", label: "Today's Revenue", icon: DollarSign, color: "blue" },
+  { key: "refunds", label: "Total Refunded", icon: RotateCcw, color: "red" },
   { key: "products", label: "Active Products", icon: Package, color: "yellow" },
   { key: "deliveries", label: "Pending Deliveries", icon: Truck, color: "violet" },
 ] as const;
@@ -37,9 +52,11 @@ const statCards = [
 export default async function DashboardPage() {
   const [stats, recentOrders, lowStock] = await Promise.all([getStats(), getRecentOrders(), getLowStockProducts()]);
 
+  const netRevenue = stats.totalRevenue - stats.totalRefunded;
   const statValues = {
     orders: { value: stats.todayOrders, sub: `${stats.totalOrders} total orders` },
-    revenue: { value: formatPrice(stats.todayRevenue), sub: `${formatPrice(stats.totalRevenue)} total` },
+    revenue: { value: formatPrice(stats.todayRevenue), sub: `${formatPrice(netRevenue)} net revenue` },
+    refunds: { value: formatPrice(stats.totalRefunded), sub: `${stats.todayRefunded > 0 ? `${formatPrice(stats.todayRefunded)} today · ` : ""}${stats.refundedCount} orders${stats.pendingRefunds > 0 ? ` · ${stats.pendingRefunds} pending` : ""}` },
     products: { value: stats.totalProducts, sub: `${lowStock.length} low stock` },
     deliveries: { value: stats.pendingDeliveries, sub: undefined },
   };
@@ -48,7 +65,7 @@ export default async function DashboardPage() {
     <Stack gap="lg">
       <Title order={2}>Overview</Title>
 
-      <SimpleGrid cols={{ base: 1, sm: 2, lg: 4 }} spacing="md">
+      <SimpleGrid cols={{ base: 1, sm: 2, lg: 5 }} spacing="md">
         {statCards.map((card) => {
           const data = statValues[card.key];
           return (
@@ -73,7 +90,7 @@ export default async function DashboardPage() {
           <Group justify="space-between" mb="md">
             <Title order={4}>Recent Orders</Title>
             <Link href="/dashboard/orders">
-              <Button variant="subtle" color="green" size="xs" rightSection={<ArrowRight size={14} />}>View All</Button>
+              <Button variant="subtle" color="maroon" size="xs" rightSection={<ArrowRight size={14} />}>View All</Button>
             </Link>
           </Group>
           {recentOrders.length === 0 ? <Text size="sm" c="dimmed">No orders yet</Text> : (
@@ -100,7 +117,7 @@ export default async function DashboardPage() {
           <Group justify="space-between" mb="md">
             <Title order={4}>Low Stock Alerts</Title>
             <Link href="/dashboard/products">
-              <Button variant="subtle" color="green" size="xs" rightSection={<ArrowRight size={14} />}>View All</Button>
+              <Button variant="subtle" color="maroon" size="xs" rightSection={<ArrowRight size={14} />}>View All</Button>
             </Link>
           </Group>
           {lowStock.length === 0 ? <Text size="sm" c="dimmed">All products well stocked</Text> : (

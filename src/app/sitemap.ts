@@ -2,7 +2,7 @@ import { MetadataRoute } from "next";
 import { db } from "@/lib/db";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://freshmart.com.au";
+  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://lumbinimeat.com.au";
 
   const products = await db.product.findMany({
     where: { isActive: true },

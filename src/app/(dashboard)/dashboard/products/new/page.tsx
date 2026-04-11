@@ -17,6 +17,7 @@ export default function NewProductPage() {
   const [slug, setSlug] = useState("");
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
+  const [gst, setGst] = useState("");
   const [compareAtPrice, setCompareAtPrice] = useState("");
   const [categoryId, setCategoryId] = useState("");
   const [stock, setStock] = useState("0");
@@ -36,6 +37,11 @@ export default function NewProductPage() {
     setSlug(slugify(name));
   }, [name]);
 
+  useEffect(() => {
+    if (price) setGst((parseFloat(price) / 11).toFixed(2));
+    else setGst("");
+  }, [price]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -48,6 +54,7 @@ export default function NewProductPage() {
         slug,
         description,
         price: parseFloat(price),
+        gst: gst ? parseFloat(gst) : 0,
         compareAtPrice: compareAtPrice ? parseFloat(compareAtPrice) : null,
         categoryId,
         stock: parseInt(stock),
@@ -59,7 +66,7 @@ export default function NewProductPage() {
     });
 
     if (res.ok) {
-      notifications.show({ message: "Product created", color: "green" });
+      notifications.show({ message: "Product created", color: "maroon" });
       router.push("/dashboard/products");
     } else {
       const data = await res.json();
@@ -77,8 +84,9 @@ export default function NewProductPage() {
           <TextInput label="Slug" value={slug} onChange={(e) => setSlug(e.currentTarget.value)} required />
         </div>
         <Textarea label="Description" value={description} onChange={(e) => setDescription(e.currentTarget.value)} rows={3} />
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-4 gap-4">
           <TextInput label="Price (AUD)" type="number" step="0.01" value={price} onChange={(e) => setPrice(e.currentTarget.value)} required />
+          <TextInput label="GST ($)" type="number" step="0.01" min="0" value={gst} onChange={(e) => setGst(e.currentTarget.value)} description="0 = GST free" />
           <TextInput label="Compare At Price" type="number" step="0.01" value={compareAtPrice} onChange={(e) => setCompareAtPrice(e.currentTarget.value)} />
           <NativeSelect
             label="Unit"
@@ -119,7 +127,7 @@ export default function NewProductPage() {
           </label>
         </div>
         <div className="flex gap-2">
-          <Button type="submit" color="green" disabled={loading}>{loading ? "Creating..." : "Create Product"}</Button>
+          <Button type="submit" color="maroon" disabled={loading}>{loading ? "Creating..." : "Create Product"}</Button>
           <Button type="button" variant="outline" onClick={() => router.back()}>Cancel</Button>
         </div>
       </form>

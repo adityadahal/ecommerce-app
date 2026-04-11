@@ -18,7 +18,7 @@ export default async function OrdersPage() {
       {orders.length === 0 ? (
         <Stack align="center" py="xl">
           <Text c="dimmed">No orders yet.</Text>
-          <Link href="/" style={{ color: "var(--mantine-color-green-6)" }}>Start shopping</Link>
+          <Link href="/" style={{ color: "#800000" }}>Start shopping</Link>
         </Stack>
       ) : (
         <Stack gap="sm">

@@ -27,6 +27,13 @@ enum PaymentStatus {
   REFUNDED
 }
 
+enum RefundStatus {
+  NONE
+  PENDING
+  REFUNDED
+  FAILED
+}
+
 model User {
   id            String    @id @default(cuid())
   name          String?
@@ -106,6 +113,7 @@ model Product {
   slug           String  @unique
   description    String?
   price          Float
+  gst            Float   @default(0)
   compareAtPrice Float?
   images         String[]
   categoryId     String
@@ -161,13 +169,19 @@ model Order {
   stripePaymentIntentId  String?
   cardBrand              String?
   cardLast4              String?
+  refundStatus           RefundStatus @default(NONE)
+  refundedAt             DateTime?
+  refundAmount           Float?
+  stripeRefundId         String?
   notes                  String?
   customerName    String?
   customerEmail   String?
   customerPhone   String?
+  deliveryZoneId  String?
 
-  user  User?       @relation(fields: [userId], references: [id])
-  items OrderItem[]
+  user         User?         @relation(fields: [userId], references: [id])
+  deliveryZone DeliveryZone? @relation(fields: [deliveryZoneId], references: [id])
+  items        OrderItem[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -179,6 +193,7 @@ model OrderItem {
   productId String
   name      String
   price     Float
+  gst       Float  @default(0)
   quantity  Int
   image     String?
 
@@ -202,13 +217,16 @@ model Address {
 }
 
 model DeliveryZone {
-  id              String @id @default(cuid())
+  id              String   @id @default(cuid())
   name            String
   postcodeFrom    String
   postcodeTo      String
   deliveryFee     Float
   minOrderForFree Float?
-  isActive        Boolean @default(true)
+  availableDays   String[]
+  isActive        Boolean  @default(true)
+
+  orders Order[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

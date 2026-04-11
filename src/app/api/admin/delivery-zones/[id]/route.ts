@@ -20,6 +20,7 @@ export async function PUT(
       postcodeTo: data.postcodeTo,
       deliveryFee: parseFloat(data.deliveryFee) || 0,
       minOrderForFree: data.minOrderForFree ? parseFloat(data.minOrderForFree) : null,
+      availableDays: data.availableDays || [],
     },
   });
   return NextResponse.json(zone);

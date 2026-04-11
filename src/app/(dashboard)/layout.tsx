@@ -1,10 +1,11 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { AppShell, NavLink, Group, Text, Badge, Burger, Divider, ThemeIcon } from "@mantine/core";
+import { AppShell, NavLink, Group, Text, Badge, Burger, Divider } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
-import { LayoutDashboard, Package, FolderTree, ShoppingBag, Truck, LogOut, ShoppingCart, Store } from "lucide-react";
+import { LayoutDashboard, Package, FolderTree, ShoppingBag, Truck, LogOut, Store } from "lucide-react";
 import { signOut } from "next-auth/react";
 
 const navItems = [
@@ -35,11 +36,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <AppShell.Navbar p="xs">
         <AppShell.Section>
           <Group px="sm" py="md">
-            <ThemeIcon color="green" size="md" radius="md">
-              <ShoppingCart size={16} />
-            </ThemeIcon>
-            <Text fw={700} size="lg">FreshMart</Text>
-            <Badge color="green" variant="light" size="xs" ml="auto">ADMIN</Badge>
+            <Image src="/logo-icon.svg" alt="Lumbini" width={36} height={36} style={{ borderRadius: "var(--mantine-radius-md)" }} />
+            <Text fw={700} size="lg" c="#800000">Lumbini</Text>
+            <Badge color="maroon" variant="light" size="xs" ml="auto">ADMIN</Badge>
           </Group>
         </AppShell.Section>
 
@@ -52,7 +51,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               label={item.label}
               leftSection={<item.icon size={18} />}
               active={pathname === item.href}
-              color="green"
+              color="maroon"
               variant="light"
               style={{ borderRadius: "var(--mantine-radius-md)" }}
             />

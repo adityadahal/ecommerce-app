@@ -1,20 +1,29 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { Container, Button, TextInput, NativeSelect, Title, Text, Paper, Group, Stack, Grid, ThemeIcon } from "@mantine/core";
+import { Container, Button, TextInput, NativeSelect, Title, Text, Paper, Group, Stack, Grid, ThemeIcon, Alert } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import { useLocalCart } from "@/hooks/use-cart";
 import { formatPrice, calculateGST } from "@/lib/utils";
 import { OrderSummary } from "@/components/store/order-summary";
-import { AU_STATES, DELIVERY_SLOTS, FREE_DELIVERY_THRESHOLD, DEFAULT_DELIVERY_FEE } from "@/lib/constants";
-import { Loader2, User, MapPin, Clock, ShoppingBag } from "lucide-react";
+import { AU_STATES, getNextDeliveryDate, formatDeliveryDate } from "@/lib/constants";
+import { Loader2, User, MapPin, Truck, ShoppingBag, CalendarDays } from "lucide-react";
+
+type DeliveryZone = {
+  id: string;
+  name: string;
+  deliveryFee: number;
+  minOrderForFree: number | null;
+  availableDays: string[];
+};
 
 export default function CheckoutPage() {
-  const { items, subtotal, clearCart } = useLocalCart();
+  const { items, subtotal, clearCart, gstTotal } = useLocalCart();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-  const [deliverySlot, setDeliverySlot] = useState(DELIVERY_SLOTS[0]);
+  const [zones, setZones] = useState<DeliveryZone[]>([]);
+  const [selectedZoneId, setSelectedZoneId] = useState("");
 
   const [customerName, setCustomerName] = useState("");
   const [customerEmail, setCustomerEmail] = useState("");
@@ -24,10 +33,32 @@ export default function CheckoutPage() {
   const [state, setState] = useState("VIC");
   const [postcode, setPostcode] = useState("");
 
-  const deliveryFee = subtotal >= FREE_DELIVERY_THRESHOLD ? 0 : DEFAULT_DELIVERY_FEE;
+  useEffect(() => {
+    fetch("/api/delivery-zones")
+      .then((r) => r.json())
+      .then((data) => setZones(data))
+      .catch(() => {});
+  }, []);
+
+  const selectedZone = useMemo(
+    () => zones.find((z) => z.id === selectedZoneId) || null,
+    [zones, selectedZoneId]
+  );
+
+  const deliveryFee = useMemo(() => {
+    if (!selectedZone) return 0;
+    if (selectedZone.minOrderForFree && subtotal >= selectedZone.minOrderForFree) return 0;
+    return selectedZone.deliveryFee;
+  }, [selectedZone, subtotal]);
+
+  const estimatedDate = useMemo(
+    () => (selectedZone ? getNextDeliveryDate(selectedZone.availableDays) : null),
+    [selectedZone]
+  );
+
   const total = subtotal + deliveryFee;
-  const gst = calculateGST(total);
-  const isFormValid = customerName && customerEmail && customerPhone && street && suburb && state && postcode;
+  const gst = gstTotal + calculateGST(deliveryFee);
+  const isFormValid = customerName && customerEmail && customerPhone && street && suburb && state && postcode && selectedZoneId;
 
   const handleCheckout = async () => {
     if (!isFormValid) return;
@@ -39,7 +70,8 @@ export default function CheckoutPage() {
         body: JSON.stringify({
           items: items.map((i) => ({ productId: i.productId, quantity: i.quantity })),
           address: { street, suburb, state, postcode },
-          deliverySlot, customerName, customerEmail, customerPhone,
+          deliveryZoneId: selectedZoneId,
+          customerName, customerEmail, customerPhone,
         }),
       });
       const data = await res.json();
@@ -52,7 +84,7 @@ export default function CheckoutPage() {
     return (
       <Container size={900} py={60} ta="center">
         <Title order={2}>Your cart is empty</Title>
-        <Button onClick={() => router.push("/")} color="green" mt="md">Continue Shopping</Button>
+        <Button onClick={() => router.push("/")} color="maroon" mt="md">Continue Shopping</Button>
       </Container>
     );
   }
@@ -67,7 +99,7 @@ export default function CheckoutPage() {
           <Stack gap="lg">
             <Paper p="lg" radius="lg" withBorder>
               <Group gap="sm" mb="md">
-                <ThemeIcon color="green" size="md" radius="md" variant="light"><User size={16} /></ThemeIcon>
+                <ThemeIcon color="maroon" size="md" radius="md" variant="light"><User size={16} /></ThemeIcon>
                 <Title order={4}>Your Details</Title>
               </Group>
               <Stack gap="sm">
@@ -96,27 +128,43 @@ export default function CheckoutPage() {
 
             <Paper p="lg" radius="lg" withBorder>
               <Group gap="sm" mb="md">
-                <ThemeIcon color="yellow" size="md" radius="md" variant="light"><Clock size={16} /></ThemeIcon>
-                <Title order={4}>Delivery Time</Title>
+                <ThemeIcon color="violet" size="md" radius="md" variant="light"><Truck size={16} /></ThemeIcon>
+                <Title order={4}>Delivery Zone</Title>
               </Group>
-              <Group gap="sm" grow>
-                {DELIVERY_SLOTS.map((slot) => (
-                  <Button
-                    key={slot}
-                    variant={deliverySlot === slot ? "light" : "default"}
-                    color={deliverySlot === slot ? "green" : "gray"}
-                    onClick={() => setDeliverySlot(slot)}
-                    size="sm"
-                  >
-                    {slot}
-                  </Button>
-                ))}
-              </Group>
+              <Stack gap="sm">
+                <NativeSelect
+                  label="Select your delivery zone"
+                  value={selectedZoneId}
+                  onChange={(e) => setSelectedZoneId(e.currentTarget.value)}
+                  data={[
+                    { value: "", label: "-- Select a zone --" },
+                    ...zones.map((z) => ({ value: z.id, label: z.name })),
+                  ]}
+                  required
+                />
+                {selectedZone && estimatedDate && (
+                  <Alert color="maroon" variant="light" icon={<CalendarDays size={18} />}>
+                    <Text size="sm" fw={500}>
+                      Estimated delivery: {formatDeliveryDate(estimatedDate)}
+                    </Text>
+                    {deliveryFee > 0 && selectedZone.minOrderForFree && (
+                      <Text size="xs" c="dimmed" mt={2}>
+                        Free delivery on orders over {formatPrice(selectedZone.minOrderForFree)}
+                      </Text>
+                    )}
+                    {deliveryFee === 0 && selectedZone.minOrderForFree && (
+                      <Text size="xs" c="green" fw={500} mt={2}>
+                        You qualify for free delivery!
+                      </Text>
+                    )}
+                  </Alert>
+                )}
+              </Stack>
             </Paper>
 
             <Paper p="lg" radius="lg" withBorder>
               <Group gap="sm" mb="md">
-                <ThemeIcon color="violet" size="md" radius="md" variant="light"><ShoppingBag size={16} /></ThemeIcon>
+                <ThemeIcon color="yellow" size="md" radius="md" variant="light"><ShoppingBag size={16} /></ThemeIcon>
                 <Title order={4}>Order Items ({items.length})</Title>
               </Group>
               <Stack gap="xs">
@@ -135,7 +183,13 @@ export default function CheckoutPage() {
           <Paper p="lg" radius="lg" withBorder shadow="sm" pos={{ lg: "sticky" }} top={{ lg: 80 }}>
             <Title order={3} mb="md">Order Summary</Title>
             <OrderSummary subtotal={subtotal} gst={gst} deliveryFee={deliveryFee} total={total} />
-            <Button onClick={handleCheckout} disabled={loading || !isFormValid} color="green" fullWidth size="lg" mt="lg">
+            {estimatedDate && (
+              <Group gap="xs" mt="sm">
+                <CalendarDays size={14} className="text-gray-400" />
+                <Text size="sm" c="dimmed">Est. delivery: {formatDeliveryDate(estimatedDate)}</Text>
+              </Group>
+            )}
+            <Button onClick={handleCheckout} disabled={loading || !isFormValid} color="gold" fullWidth size="lg" mt="lg">
               {loading ? (<><Loader2 size={16} className="animate-spin" /> Processing...</>) : `Pay ${formatPrice(total)}`}
             </Button>
             <Text size="xs" c="dimmed" ta="center" mt="sm">

@@ -1,11 +1,13 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Button, Badge, Collapse, Skeleton, Table, Card, Text, Combobox, InputBase, useCombobox, Group, CloseButton } from "@mantine/core";
+import { Button, Badge, Collapse, Skeleton, Table, Card, Text, Combobox, InputBase, useCombobox, Group, CloseButton, Modal, Stack } from "@mantine/core";
+import { useDisclosure } from "@mantine/hooks";
 import { notifications } from "@mantine/notifications";
 import { formatPrice } from "@/lib/utils";
-import { VALID_ORDER_STATUSES } from "@/lib/constants";
+import { VALID_ORDER_STATUSES, REFUND_STATUS_COLORS } from "@/lib/constants";
 import { ChevronDown, ChevronRight, Phone, Mail, MapPin, Clock, Package, CreditCard, CheckCircle, XCircle, CircleDot } from "lucide-react";
+import { TablePagination } from "@/components/dashboard/table-pagination";
 
 type Order = {
   id: string;
@@ -24,6 +26,9 @@ type Order = {
   deliverySlot: string | null;
   cardBrand: string | null;
   cardLast4: string | null;
+  refundStatus: string;
+  refundedAt: string | null;
+  refundAmount: number | null;
   items: { id: string; name: string; price: number; quantity: number }[];
 };
 
@@ -255,6 +260,20 @@ function OrderRow({
                         <Text size="sm" tt="capitalize">{order.cardBrand} ending in {order.cardLast4}</Text>
                       </div>
                     )}
+                    {order.refundStatus && order.refundStatus !== "NONE" && (
+                      <div className="mt-2 pt-2 border-t border-stone-200">
+                        <Badge size="sm" color={REFUND_STATUS_COLORS[order.refundStatus] || "gray"} variant="light">
+                          {order.refundStatus === "PENDING" && "Refund Pending"}
+                          {order.refundStatus === "REFUNDED" && `Refunded ${order.refundAmount ? formatPrice(order.refundAmount) : ""}`}
+                          {order.refundStatus === "FAILED" && "Refund Failed"}
+                        </Badge>
+                        {order.refundedAt && (
+                          <Text size="xs" c="dimmed" mt={4}>
+                            Refunded on {new Date(order.refundedAt).toLocaleDateString("en-AU", { day: "2-digit", month: "short", year: "numeric" })}
+                          </Text>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </Card>
 
@@ -303,10 +322,15 @@ function OrderRow({
 
 export default function OrdersAdminPage() {
   const [orders, setOrders] = useState<Order[]>([]);
-  const [pagination, setPagination] = useState<Pagination>({ page: 1, limit: 5, total: 0, totalPages: 1 });
+  const [pagination, setPagination] = useState<Pagination>({ page: 1, limit: 10, total: 0, totalPages: 1 });
   const [filter, setFilter] = useState<string | null>("");
   const [loading, setLoading] = useState(true);
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
+
+  // Refund confirmation modal state
+  const [refundModalOpened, { open: openRefundModal, close: closeRefundModal }] = useDisclosure(false);
+  const [cancelTarget, setCancelTarget] = useState<Order | null>(null);
+  const [refundLoading, setRefundLoading] = useState(false);
 
   const toggleExpand = (id: string) => {
     setExpandedIds((prev) => {
@@ -317,12 +341,12 @@ export default function OrdersAdminPage() {
     });
   };
 
-  const fetchOrders = (page = 1) => {
+  const fetchOrders = (page = 1, limit = pagination.limit) => {
     setLoading(true);
     const params = new URLSearchParams();
     if (filter) params.set("status", filter);
     params.set("page", String(page));
-    params.set("limit", String(pagination.limit));
+    params.set("limit", String(limit));
     fetch(`/api/admin/orders?${params}`)
       .then((r) => r.json())
       .then((data) => {
@@ -336,6 +360,36 @@ export default function OrdersAdminPage() {
 
   useEffect(() => { fetchOrders(1); }, [filter]);
 
+  const handleStatusChange = (order: Order, status: string) => {
+    // If cancelling a paid order, show refund confirmation modal
+    if (status === "CANCELLED" && order.paymentStatus === "PAID" && order.refundStatus === "NONE") {
+      setCancelTarget(order);
+      openRefundModal();
+      return;
+    }
+    updateStatus(order.id, status);
+  };
+
+  const confirmCancelWithRefund = async () => {
+    if (!cancelTarget) return;
+    setRefundLoading(true);
+    const res = await fetch(`/api/admin/orders/${cancelTarget.id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status: "CANCELLED" }),
+    });
+    if (res.ok) {
+      notifications.show({ message: "Order cancelled — refund initiated", color: "maroon" });
+      fetchOrders(pagination.page);
+    } else {
+      const data = await res.json().catch(() => ({}));
+      notifications.show({ message: data.error || "Refund failed", color: "red" });
+    }
+    setRefundLoading(false);
+    closeRefundModal();
+    setCancelTarget(null);
+  };
+
   const updateStatus = async (id: string, status: string) => {
     const res = await fetch(`/api/admin/orders/${id}`, {
       method: "PUT",
@@ -343,8 +397,11 @@ export default function OrdersAdminPage() {
       body: JSON.stringify({ status }),
     });
     if (res.ok) {
-      notifications.show({ message: "Order status updated", color: "green" });
+      notifications.show({ message: "Order status updated", color: "maroon" });
       fetchOrders(pagination.page);
+    } else {
+      const data = await res.json().catch(() => ({}));
+      notifications.show({ message: data.error || "Failed to update status", color: "red" });
     }
   };
 
@@ -395,7 +452,7 @@ export default function OrdersAdminPage() {
                   index={(pagination.page - 1) * pagination.limit + i + 1}
                   expanded={expandedIds.has(order.id)}
                   onToggle={() => toggleExpand(order.id)}
-                  onStatusChange={(status) => updateStatus(order.id, status)}
+                  onStatusChange={(status) => handleStatusChange(order, status)}
                 />
               ))
             )}
@@ -403,32 +460,71 @@ export default function OrdersAdminPage() {
         </Table>
       </Card>
 
-      {/* Pagination */}
-      {pagination.totalPages > 1 && (
-        <div className="mt-4 flex items-center justify-between">
-          <Text size="sm" className="text-stone-500">
-            Showing {(pagination.page - 1) * pagination.limit + 1}-{Math.min(pagination.page * pagination.limit, pagination.total)} of {pagination.total}
-          </Text>
-          <div className="flex gap-2">
-            <Button
-              variant="default"
-              size="xs"
-              disabled={pagination.page <= 1}
-              onClick={() => fetchOrders(pagination.page - 1)}
-            >
-              Previous
-            </Button>
-            <Button
-              variant="default"
-              size="xs"
-              disabled={pagination.page >= pagination.totalPages}
-              onClick={() => fetchOrders(pagination.page + 1)}
-            >
-              Next
-            </Button>
-          </div>
-        </div>
-      )}
+      <TablePagination
+        page={pagination.page}
+        limit={pagination.limit}
+        total={pagination.total}
+        totalPages={pagination.totalPages}
+        onPageChange={(p) => fetchOrders(p, pagination.limit)}
+        onLimitChange={(l) => fetchOrders(1, l)}
+      />
+
+      {/* Refund Confirmation Modal */}
+      <Modal
+        opened={refundModalOpened}
+        onClose={() => { closeRefundModal(); setCancelTarget(null); }}
+        title={<Text fw={700} size="lg">Cancel Order & Refund</Text>}
+        centered
+      >
+        {cancelTarget && (
+          <Stack gap="md">
+            <Text size="sm" c="dimmed">
+              Are you sure you want to cancel this order? A full refund will be issued to the customer.
+            </Text>
+
+            <Card withBorder radius="md" padding="sm" className="bg-stone-50">
+              <Stack gap="xs">
+                <Group justify="space-between">
+                  <Text size="sm" c="dimmed">Order</Text>
+                  <Text size="sm" fw={600} ff="monospace">{cancelTarget.orderNumber}</Text>
+                </Group>
+                <Group justify="space-between">
+                  <Text size="sm" c="dimmed">Refund Amount</Text>
+                  <Text size="sm" fw={700} c="maroon.7">{formatPrice(cancelTarget.total)}</Text>
+                </Group>
+                {cancelTarget.cardBrand && cancelTarget.cardLast4 && (
+                  <Group justify="space-between">
+                    <Text size="sm" c="dimmed">Refund To</Text>
+                    <Group gap={6}>
+                      <CreditCard size={14} className="text-gray-400" />
+                      <Text size="sm" tt="capitalize">{cancelTarget.cardBrand} ending in {cancelTarget.cardLast4}</Text>
+                    </Group>
+                  </Group>
+                )}
+                {cancelTarget.customerName && (
+                  <Group justify="space-between">
+                    <Text size="sm" c="dimmed">Customer</Text>
+                    <Text size="sm">{cancelTarget.customerName}</Text>
+                  </Group>
+                )}
+              </Stack>
+            </Card>
+
+            <Text size="xs" c="dimmed">
+              The refund will be processed via Stripe and may take 5–10 business days to appear on the customer&apos;s statement.
+            </Text>
+
+            <Group justify="flex-end" gap="sm">
+              <Button variant="default" onClick={() => { closeRefundModal(); setCancelTarget(null); }}>
+                Keep Order
+              </Button>
+              <Button color="red" loading={refundLoading} onClick={confirmCancelWithRefund}>
+                Cancel & Refund
+              </Button>
+            </Group>
+          </Stack>
+        )}
+      </Modal>
     </div>
   );
 }

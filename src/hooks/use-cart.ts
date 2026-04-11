@@ -8,6 +8,7 @@ type LocalCartItem = {
   quantity: number;
   name: string;
   price: number;
+  gst: number;
   image: string;
   unit: string;
   slug: string;
@@ -119,7 +120,8 @@ export function useLocalCart() {
 
   const itemCount = items.reduce((sum, i) => sum + i.quantity, 0);
   const subtotal = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
+  const gstTotal = items.reduce((sum, i) => sum + (i.gst || 0) * i.quantity, 0);
   const isLoaded = typeof window !== "undefined";
 
-  return { items, isLoaded, addItem, updateQuantity, removeItem, clearCart, itemCount, subtotal };
+  return { items, isLoaded, addItem, updateQuantity, removeItem, clearCart, itemCount, subtotal, gstTotal };
 }

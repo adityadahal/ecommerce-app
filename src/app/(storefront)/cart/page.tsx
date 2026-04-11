@@ -11,9 +11,9 @@ import { FREE_DELIVERY_THRESHOLD, DEFAULT_DELIVERY_FEE } from "@/lib/constants";
 import { ActionIcon } from "@mantine/core";
 
 export default function CartPage() {
-  const { items, isLoaded, updateQuantity, removeItem, subtotal } = useLocalCart();
-  const gst = calculateGST(subtotal);
+  const { items, isLoaded, updateQuantity, removeItem, subtotal, gstTotal } = useLocalCart();
   const deliveryFee = subtotal >= FREE_DELIVERY_THRESHOLD ? 0 : DEFAULT_DELIVERY_FEE;
+  const gst = gstTotal + calculateGST(deliveryFee);
   const total = subtotal + deliveryFee;
 
   if (!isLoaded) {
@@ -35,7 +35,7 @@ export default function CartPage() {
         </ThemeIcon>
         <Title order={2} mt="lg">Your cart is empty</Title>
         <Text c="dimmed" mt="xs">Add some items to get started</Text>
-        <Button component={Link} href="/" color="green" size="md" mt="lg" rightSection={<ArrowRight size={16} />}>
+        <Button component={Link} href="/" color="maroon" size="md" mt="lg" rightSection={<ArrowRight size={16} />}>
           Continue Shopping
         </Button>
       </Container>
@@ -59,7 +59,7 @@ export default function CartPage() {
                   <Stack gap={2} style={{ flex: 1 }}>
                     <Text fw={600} component={Link} href={`/product/${item.slug}`} className="hover:underline">{item.name}</Text>
                     <Text size="sm" c="dimmed">{item.unit}</Text>
-                    <Text fw={700} c="green.7">{formatPrice(item.price)}</Text>
+                    <Text fw={700} c="maroon.7">{formatPrice(item.price)}</Text>
                   </Stack>
                   <Stack align="flex-end" gap="xs">
                     <ActionIcon variant="subtle" color="red" size="sm" onClick={() => removeItem(item.productId)}>
@@ -86,7 +86,7 @@ export default function CartPage() {
           <Paper p="lg" radius="lg" withBorder shadow="sm" pos={{ lg: "sticky" }} top={{ lg: 80 }}>
             <Title order={3} mb="md">Order Summary</Title>
             <OrderSummary subtotal={subtotal} gst={gst} deliveryFee={deliveryFee} total={total} showFreeDeliveryHint />
-            <Button component={Link} href="/checkout" color="green" fullWidth size="lg" mt="lg" rightSection={<ArrowRight size={16} />}>
+            <Button component={Link} href="/checkout" color="gold" fullWidth size="lg" mt="lg" rightSection={<ArrowRight size={16} />}>
               Checkout
             </Button>
             <Text component={Link} href="/" size="sm" c="dimmed" ta="center" display="block" mt="sm" className="hover:underline">

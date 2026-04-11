@@ -15,7 +15,7 @@ export async function generateMetadata({ params }: Props) {
   const { slug } = await params;
   const product = await db.product.findUnique({ where: { slug } });
   if (!product) return {};
-  return { title: `${product.name} - FreshMart`, description: product.description || `Buy ${product.name} online.`, openGraph: { title: product.name, description: product.description || undefined, images: product.images[0] ? [product.images[0]] : undefined } };
+  return { title: `${product.name} - Lumbini Meat & Grocery`, description: product.description || `Buy ${product.name} online.`, openGraph: { title: product.name, description: product.description || undefined, images: product.images[0] ? [product.images[0]] : undefined } };
 }
 
 export default async function ProductPage({ params }: Props) {
@@ -29,9 +29,9 @@ export default async function ProductPage({ params }: Props) {
   return (
     <Container size={1280} py="xl">
       <Group gap={8} mb="lg">
-        <Link href="/" style={{ textDecoration: "none", color: "var(--mantine-color-green-6)" }}><Text size="sm">Home</Text></Link>
+        <Link href="/" style={{ textDecoration: "none", color: "#800000" }}><Text size="sm">Home</Text></Link>
         <Text size="sm" c="dimmed">/</Text>
-        <Link href={`/category/${product.category.slug}`} style={{ textDecoration: "none", color: "var(--mantine-color-green-6)" }}><Text size="sm">{product.category.name}</Text></Link>
+        <Link href={`/category/${product.category.slug}`} style={{ textDecoration: "none", color: "#800000" }}><Text size="sm">{product.category.name}</Text></Link>
         <Text size="sm" c="dimmed">/</Text>
         <Text size="sm" c="dimmed">{product.name}</Text>
       </Group>
@@ -41,11 +41,11 @@ export default async function ProductPage({ params }: Props) {
           <ProductImages images={product.images} name={product.name} />
         </div>
         <div>
-          <Text size="sm" fw={500} c="green">{product.category.name}</Text>
+          <Text size="sm" fw={500} c="maroon.6">{product.category.name}</Text>
           <Title order={1} mt={4}>{product.name}</Title>
 
           <Group gap="sm" mt="md">
-            <Text fz={32} fw={700} c="green.7">{formatPrice(product.price)}</Text>
+            <Text fz={32} fw={700} c="maroon.7">{formatPrice(product.price)}</Text>
             {isOnSale && (
               <>
                 <Text size="lg" c="dimmed" td="line-through">{formatPrice(product.compareAtPrice!)}</Text>
@@ -55,7 +55,11 @@ export default async function ProductPage({ params }: Props) {
           </Group>
 
           <Text size="sm" c="dimmed" mt={4}>per {product.unit}</Text>
-          <Text size="sm" c="dimmed">GST included ({formatPrice(product.price / 11)} GST)</Text>
+          {product.gst > 0 ? (
+            <Text size="sm" c="dimmed">Incl. GST ({formatPrice(product.gst)})</Text>
+          ) : (
+            <Text size="sm" c="dimmed">GST free</Text>
+          )}
 
           <Group mt="md">
             {product.stock > 0 ? (
@@ -72,7 +76,7 @@ export default async function ProductPage({ params }: Props) {
             </Paper>
           )}
 
-          <AddToCartButton id={product.id} name={product.name} price={product.price} image={product.images[0] || ""} unit={product.unit} slug={product.slug} stock={product.stock} />
+          <AddToCartButton id={product.id} name={product.name} price={product.price} gst={product.gst} image={product.images[0] || ""} unit={product.unit} slug={product.slug} stock={product.stock} />
         </div>
       </div>
 
@@ -81,7 +85,7 @@ export default async function ProductPage({ params }: Props) {
           <Title order={2} mt={60} mb="lg">Related Products</Title>
           <SimpleGrid cols={{ base: 2, md: 4 }} spacing="md">
             {relatedProducts.map((p) => (
-              <ProductCard key={p.id} id={p.id} name={p.name} slug={p.slug} price={p.price} compareAtPrice={p.compareAtPrice} images={p.images} stock={p.stock} unit={p.unit} category={p.category.name} />
+              <ProductCard key={p.id} id={p.id} name={p.name} slug={p.slug} price={p.price} gst={p.gst} compareAtPrice={p.compareAtPrice} images={p.images} stock={p.stock} unit={p.unit} category={p.category.name} />
             ))}
           </SimpleGrid>
         </>
