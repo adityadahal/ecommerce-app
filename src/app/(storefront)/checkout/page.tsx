@@ -2,12 +2,12 @@
 
 import { useState, useEffect, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { Container, Button, TextInput, NativeSelect, Title, Text, Paper, Group, Stack, Grid, ThemeIcon, Alert } from "@mantine/core";
+import { Container, Button, TextInput, NativeSelect, Select, Title, Text, Paper, Group, Stack, Grid, ThemeIcon, Alert } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import { useLocalCart } from "@/hooks/use-cart";
 import { formatPrice, calculateGST } from "@/lib/utils";
 import { OrderSummary } from "@/components/store/order-summary";
-import { AU_STATES, getNextDeliveryDate, formatDeliveryDate } from "@/lib/constants";
+import { getNextDeliveryDate, formatDeliveryDate } from "@/lib/constants";
 import { Loader2, User, MapPin, Truck, ShoppingBag, CalendarDays } from "lucide-react";
 
 type DeliveryZone = {
@@ -18,19 +18,22 @@ type DeliveryZone = {
   availableDays: string[];
 };
 
+type SuburbOption = { id: string; name: string; postcode: string };
+
 export default function CheckoutPage() {
   const { items, subtotal, clearCart, gstTotal } = useLocalCart();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [zones, setZones] = useState<DeliveryZone[]>([]);
   const [selectedZoneId, setSelectedZoneId] = useState("");
+  const [suburbs, setSuburbs] = useState<SuburbOption[]>([]);
+  const [selectedSuburbId, setSelectedSuburbId] = useState("");
 
   const [customerName, setCustomerName] = useState("");
   const [customerEmail, setCustomerEmail] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
   const [street, setStreet] = useState("");
   const [suburb, setSuburb] = useState("");
-  const [state, setState] = useState("VIC");
   const [postcode, setPostcode] = useState("");
 
   useEffect(() => {
@@ -39,6 +42,31 @@ export default function CheckoutPage() {
       .then((data) => setZones(data))
       .catch(() => {});
   }, []);
+
+  useEffect(() => {
+    if (selectedZoneId) {
+      fetch(`/api/suburbs?zoneId=${selectedZoneId}`)
+        .then((r) => r.json())
+        .then((data) => setSuburbs(data))
+        .catch(() => {});
+    } else {
+      setSuburbs([]);
+    }
+    setSelectedSuburbId("");
+    setSuburb("");
+    setPostcode("");
+  }, [selectedZoneId]);
+
+  useEffect(() => {
+    const selected = suburbs.find((s) => s.id === selectedSuburbId);
+    if (selected) {
+      setSuburb(selected.name);
+      setPostcode(selected.postcode);
+    } else {
+      setSuburb("");
+      setPostcode("");
+    }
+  }, [selectedSuburbId, suburbs]);
 
   const selectedZone = useMemo(
     () => zones.find((z) => z.id === selectedZoneId) || null,
@@ -58,7 +86,7 @@ export default function CheckoutPage() {
 
   const total = subtotal + deliveryFee;
   const gst = gstTotal + calculateGST(deliveryFee);
-  const isFormValid = customerName && customerEmail && customerPhone && street && suburb && state && postcode && selectedZoneId;
+  const isFormValid = customerName && customerEmail && customerPhone && street && suburb && postcode && selectedZoneId;
 
   const handleCheckout = async () => {
     if (!isFormValid) return;
@@ -69,7 +97,7 @@ export default function CheckoutPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           items: items.map((i) => ({ productId: i.productId, quantity: i.quantity })),
-          address: { street, suburb, state, postcode },
+          address: { street, suburb, postcode },
           deliveryZoneId: selectedZoneId,
           customerName, customerEmail, customerPhone,
         }),
@@ -117,31 +145,35 @@ export default function CheckoutPage() {
                 <Title order={4}>Delivery Address</Title>
               </Group>
               <Stack gap="sm">
-                <TextInput label="Street Address" value={street} onChange={(e) => setStreet(e.currentTarget.value)} placeholder="123 Main Street" required />
-                <Group grow>
-                  <TextInput label="Suburb" value={suburb} onChange={(e) => setSuburb(e.currentTarget.value)} placeholder="Melbourne" required />
-                  <NativeSelect label="State" value={state} onChange={(e) => setState(e.currentTarget.value)} data={AU_STATES} />
-                </Group>
-                <TextInput label="Postcode" value={postcode} onChange={(e) => setPostcode(e.currentTarget.value)} placeholder="3000" maxLength={4} required w="50%" />
-              </Stack>
-            </Paper>
-
-            <Paper p="lg" radius="lg" withBorder>
-              <Group gap="sm" mb="md">
-                <ThemeIcon color="violet" size="md" radius="md" variant="light"><Truck size={16} /></ThemeIcon>
-                <Title order={4}>Delivery Zone</Title>
-              </Group>
-              <Stack gap="sm">
                 <NativeSelect
-                  label="Select your delivery zone"
+                  label="Delivery Zone"
                   value={selectedZoneId}
                   onChange={(e) => setSelectedZoneId(e.currentTarget.value)}
                   data={[
-                    { value: "", label: "-- Select a zone --" },
+                    { value: "", label: "-- Select a delivery zone --" },
                     ...zones.map((z) => ({ value: z.id, label: z.name })),
                   ]}
                   required
                 />
+                {selectedZoneId && suburbs.length === 0 ? (
+                  <Alert color="yellow" variant="light">
+                    <Text size="sm">No suburbs found for this delivery zone. Please select a different zone.</Text>
+                  </Alert>
+                ) : (
+                  <Select
+                    label="Suburb"
+                    placeholder={selectedZoneId ? "Search and select suburb..." : "Select a zone first"}
+                    value={selectedSuburbId}
+                    onChange={(val) => setSelectedSuburbId(val || "")}
+                    data={suburbs.map((s) => ({ value: s.id, label: s.name }))}
+                    disabled={!selectedZoneId}
+                    searchable
+                    nothingFoundMessage="No suburb found"
+                    required
+                  />
+                )}
+                <TextInput label="Postcode" value={postcode} readOnly variant="filled" placeholder="Auto-filled from suburb" required />
+                <TextInput label="Street Address" value={street} onChange={(e) => setStreet(e.currentTarget.value)} placeholder="123 Main Street" required />
                 {selectedZone && estimatedDate && (
                   <Alert color="maroon" variant="light" icon={<CalendarDays size={18} />}>
                     <Text size="sm" fw={500}>

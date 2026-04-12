@@ -11,7 +11,7 @@ import { Search, XCircle, Package, CreditCard, RotateCcw, CalendarDays } from "l
 type OrderData = {
   orderNumber: string; status: string; paymentStatus: string;
   subtotal: number; deliveryFee: number; gst: number; total: number;
-  deliveryAddress: { street: string; suburb: string; state: string; postcode: string };
+  deliveryAddress: { street: string; suburb: string; state?: string; postcode: string };
   deliverySlot: string | null; customerName: string | null; createdAt: string;
   cardBrand: string | null; cardLast4: string | null;
   refundStatus: string; refundedAt: string | null; refundAmount: number | null;

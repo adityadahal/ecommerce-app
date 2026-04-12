@@ -29,7 +29,7 @@ export default function NewProductPage() {
   useEffect(() => {
     fetch("/api/admin/categories")
       .then((r) => r.json())
-      .then(setCategories)
+      .then((data) => setCategories(data.categories))
       .catch(() => {});
   }, []);
 
@@ -37,10 +37,7 @@ export default function NewProductPage() {
     setSlug(slugify(name));
   }, [name]);
 
-  useEffect(() => {
-    if (price) setGst((parseFloat(price) / 11).toFixed(2));
-    else setGst("");
-  }, [price]);
+  const totalAmount = (parseFloat(price || "0") + parseFloat(gst || "0")).toFixed(2);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -53,7 +50,7 @@ export default function NewProductPage() {
         name,
         slug,
         description,
-        price: parseFloat(price),
+        price: parseFloat(price) + (gst ? parseFloat(gst) : 0),
         gst: gst ? parseFloat(gst) : 0,
         compareAtPrice: compareAtPrice ? parseFloat(compareAtPrice) : null,
         categoryId,
@@ -85,8 +82,9 @@ export default function NewProductPage() {
         </div>
         <Textarea label="Description" value={description} onChange={(e) => setDescription(e.currentTarget.value)} rows={3} />
         <div className="grid grid-cols-4 gap-4">
-          <TextInput label="Price (AUD)" type="number" step="0.01" value={price} onChange={(e) => setPrice(e.currentTarget.value)} required />
+          <TextInput label="Base Price ($)" type="number" step="0.01" value={price} onChange={(e) => setPrice(e.currentTarget.value)} required />
           <TextInput label="GST ($)" type="number" step="0.01" min="0" value={gst} onChange={(e) => setGst(e.currentTarget.value)} description="0 = GST free" />
+          <TextInput label="Total Amount ($)" value={totalAmount} readOnly variant="filled" />
           <TextInput label="Compare At Price" type="number" step="0.01" value={compareAtPrice} onChange={(e) => setCompareAtPrice(e.currentTarget.value)} />
           <NativeSelect
             label="Unit"

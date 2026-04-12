@@ -226,8 +226,23 @@ model DeliveryZone {
   availableDays   String[]
   isActive        Boolean  @default(true)
 
-  orders Order[]
+  orders  Order[]
+  suburbs Suburb[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model Suburb {
+  id             String @id @default(cuid())
+  name           String
+  postcode       String
+  deliveryZoneId String
+
+  deliveryZone DeliveryZone @relation(fields: [deliveryZoneId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([name, deliveryZoneId])
 }

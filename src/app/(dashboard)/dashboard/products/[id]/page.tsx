@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { Button, TextInput, Textarea, NativeSelect } from "@mantine/core";
+import { Button, TextInput, Textarea, NativeSelect, Text } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 
 type Category = { id: string; name: string };
@@ -32,11 +32,11 @@ export default function EditProductPage() {
       fetch("/api/admin/categories").then((r) => r.json()),
       fetch(`/api/admin/products/${params.id}`).then((r) => r.json()),
     ]).then(([cats, product]) => {
-      setCategories(cats);
+      setCategories(cats.categories);
       setName(product.name);
       setSlug(product.slug);
       setDescription(product.description || "");
-      setPrice(product.price.toString());
+      setPrice((product.price - (product.gst || 0)).toFixed(2));
       setGst(product.gst?.toString() || "0");
       setCompareAtPrice(product.compareAtPrice?.toString() || "");
       setCategoryId(product.categoryId);
@@ -48,6 +48,8 @@ export default function EditProductPage() {
     });
   }, [params.id]);
 
+  const totalAmount = (parseFloat(price || "0") + parseFloat(gst || "0")).toFixed(2);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -57,7 +59,7 @@ export default function EditProductPage() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         name, slug, description,
-        price: parseFloat(price),
+        price: parseFloat(price) + (gst ? parseFloat(gst) : 0),
         gst: gst ? parseFloat(gst) : 0,
         compareAtPrice: compareAtPrice ? parseFloat(compareAtPrice) : null,
         categoryId, stock: parseInt(stock), unit,
@@ -98,8 +100,9 @@ export default function EditProductPage() {
         </div>
         <Textarea label="Description" value={description} onChange={(e) => setDescription(e.currentTarget.value)} rows={3} />
         <div className="grid grid-cols-4 gap-4">
-          <TextInput label="Price (AUD)" type="number" step="0.01" value={price} onChange={(e) => setPrice(e.currentTarget.value)} required />
+          <TextInput label="Base Price ($)" type="number" step="0.01" value={price} onChange={(e) => setPrice(e.currentTarget.value)} required />
           <TextInput label="GST ($)" type="number" step="0.01" min="0" value={gst} onChange={(e) => setGst(e.currentTarget.value)} description="0 = GST free" />
+          <TextInput label="Total Amount ($)" value={totalAmount} readOnly variant="filled" />
           <TextInput label="Compare At Price" type="number" step="0.01" value={compareAtPrice} onChange={(e) => setCompareAtPrice(e.currentTarget.value)} />
           <NativeSelect
             label="Unit"

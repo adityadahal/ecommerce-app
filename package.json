@@ -10,6 +10,7 @@
     "postinstall": "prisma generate",
     "db:push": "prisma db push",
     "db:seed": "npx tsx prisma/seed.ts",
+    "db:seed-suburbs": "npx tsx prisma/seed-suburbs.ts",
     "db:studio": "prisma studio"
   },
   "keywords": [],

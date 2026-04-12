@@ -22,7 +22,7 @@ type Order = {
   customerName: string | null;
   customerEmail: string | null;
   customerPhone: string | null;
-  deliveryAddress: { street: string; suburb: string; state: string; postcode: string };
+  deliveryAddress: { street: string; suburb: string; state?: string; postcode: string };
   deliverySlot: string | null;
   cardBrand: string | null;
   cardLast4: string | null;
@@ -244,7 +244,7 @@ function OrderRow({
                       <div className="flex items-start gap-2">
                         <MapPin size={13} className="text-stone-400 mt-0.5" />
                         <Text size="sm" className="text-stone-700">
-                          {order.deliveryAddress.street}, {order.deliveryAddress.suburb} {order.deliveryAddress.state} {order.deliveryAddress.postcode}
+                          {order.deliveryAddress.street}, {[order.deliveryAddress.suburb, order.deliveryAddress.state, order.deliveryAddress.postcode].filter(Boolean).join(" ")}
                         </Text>
                       </div>
                     )}
@@ -332,6 +332,11 @@ export default function OrdersAdminPage() {
   const [cancelTarget, setCancelTarget] = useState<Order | null>(null);
   const [refundLoading, setRefundLoading] = useState(false);
 
+  // Delivery confirmation modal state
+  const [deliverModalOpened, { open: openDeliverModal, close: closeDeliverModal }] = useDisclosure(false);
+  const [deliverTarget, setDeliverTarget] = useState<Order | null>(null);
+  const [deliverLoading, setDeliverLoading] = useState(false);
+
   const toggleExpand = (id: string) => {
     setExpandedIds((prev) => {
       const next = new Set(prev);
@@ -367,6 +372,12 @@ export default function OrdersAdminPage() {
       openRefundModal();
       return;
     }
+    // If marking as delivered, show delivery confirmation modal
+    if (status === "DELIVERED") {
+      setDeliverTarget(order);
+      openDeliverModal();
+      return;
+    }
     updateStatus(order.id, status);
   };
 
@@ -388,6 +399,26 @@ export default function OrdersAdminPage() {
     setRefundLoading(false);
     closeRefundModal();
     setCancelTarget(null);
+  };
+
+  const confirmDelivered = async () => {
+    if (!deliverTarget) return;
+    setDeliverLoading(true);
+    const res = await fetch(`/api/admin/orders/${deliverTarget.id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status: "DELIVERED" }),
+    });
+    if (res.ok) {
+      notifications.show({ message: "Order marked as delivered", color: "green" });
+      fetchOrders(pagination.page);
+    } else {
+      const data = await res.json().catch(() => ({}));
+      notifications.show({ message: data.error || "Failed to update status", color: "red" });
+    }
+    setDeliverLoading(false);
+    closeDeliverModal();
+    setDeliverTarget(null);
   };
 
   const updateStatus = async (id: string, status: string) => {
@@ -520,6 +551,58 @@ export default function OrdersAdminPage() {
               </Button>
               <Button color="red" loading={refundLoading} onClick={confirmCancelWithRefund}>
                 Cancel & Refund
+              </Button>
+            </Group>
+          </Stack>
+        )}
+      </Modal>
+
+      {/* Delivery Confirmation Modal */}
+      <Modal
+        opened={deliverModalOpened}
+        onClose={() => { closeDeliverModal(); setDeliverTarget(null); }}
+        title={<Text fw={700} size="lg">Confirm Delivery</Text>}
+        centered
+      >
+        {deliverTarget && (
+          <Stack gap="md">
+            <Text size="sm" c="dimmed">
+              Are you sure you want to mark this order as delivered? This action cannot be undone.
+            </Text>
+
+            <Card withBorder radius="md" padding="sm" className="bg-stone-50">
+              <Stack gap="xs">
+                <Group justify="space-between">
+                  <Text size="sm" c="dimmed">Order</Text>
+                  <Text size="sm" fw={600} ff="monospace">{deliverTarget.orderNumber}</Text>
+                </Group>
+                {deliverTarget.customerName && (
+                  <Group justify="space-between">
+                    <Text size="sm" c="dimmed">Customer</Text>
+                    <Text size="sm">{deliverTarget.customerName}</Text>
+                  </Group>
+                )}
+                <Group justify="space-between">
+                  <Text size="sm" c="dimmed">Total</Text>
+                  <Text size="sm" fw={700}>{formatPrice(deliverTarget.total)}</Text>
+                </Group>
+                {deliverTarget.deliveryAddress && (
+                  <Group justify="space-between" align="flex-start">
+                    <Text size="sm" c="dimmed">Address</Text>
+                    <Text size="sm" ta="right">
+                      {deliverTarget.deliveryAddress.street}, {[deliverTarget.deliveryAddress.suburb, deliverTarget.deliveryAddress.postcode].filter(Boolean).join(" ")}
+                    </Text>
+                  </Group>
+                )}
+              </Stack>
+            </Card>
+
+            <Group justify="flex-end" gap="sm">
+              <Button variant="default" onClick={() => { closeDeliverModal(); setDeliverTarget(null); }}>
+                Go Back
+              </Button>
+              <Button color="green" loading={deliverLoading} onClick={confirmDelivered}>
+                Confirm Delivered
               </Button>
             </Group>
           </Stack>

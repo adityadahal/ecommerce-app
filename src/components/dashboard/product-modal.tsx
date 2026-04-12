@@ -62,7 +62,7 @@ export function ProductModal({ opened, onClose, onSaved, product }: Props) {
 
   useEffect(() => {
     if (opened) {
-      fetch("/api/admin/categories").then((r) => r.json()).then(setCategories).catch(() => {});
+      fetch("/api/admin/categories").then((r) => r.json()).then((data) => setCategories(data.categories)).catch(() => {});
     }
   }, [opened]);
 
@@ -71,7 +71,7 @@ export function ProductModal({ opened, onClose, onSaved, product }: Props) {
       setName(product.name);
       setSlug(product.slug);
       setDescription(product.description || "");
-      setPrice(product.price.toString());
+      setPrice((product.price - (product.gst || 0)).toFixed(2));
       setGst(product.gst?.toString() || "0");
       setCompareAtPrice(product.compareAtPrice?.toString() || "");
       setCategoryId(product.categoryId);
@@ -91,10 +91,7 @@ export function ProductModal({ opened, onClose, onSaved, product }: Props) {
     if (!isEditing && name) setSlug(slugify(name));
   }, [name, isEditing]);
 
-  useEffect(() => {
-    if (!isEditing && price) setGst((parseFloat(price) / 11).toFixed(2));
-    else if (!isEditing && !price) setGst("");
-  }, [price, isEditing]);
+  const totalAmount = (parseFloat(price || "0") + parseFloat(gst || "0")).toFixed(2);
 
   const handleUpload = async (files: FileList | null) => {
     if (!files || files.length === 0) return;
@@ -147,7 +144,7 @@ export function ProductModal({ opened, onClose, onSaved, product }: Props) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         name, slug, description,
-        price: parseFloat(price),
+        price: parseFloat(price) + (gst ? parseFloat(gst) : 0),
         gst: gst ? parseFloat(gst) : 0,
         compareAtPrice: compareAtPrice ? parseFloat(compareAtPrice) : null,
         categoryId, stock: parseInt(stock), unit,
@@ -172,7 +169,7 @@ export function ProductModal({ opened, onClose, onSaved, product }: Props) {
       opened={opened}
       onClose={onClose}
       title={isEditing ? "Edit Product" : "Add Product"}
-      size="lg"
+      size="xl"
       centered
     >
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -181,9 +178,10 @@ export function ProductModal({ opened, onClose, onSaved, product }: Props) {
           <TextInput label="Slug" value={slug} onChange={(e) => setSlug(e.currentTarget.value)} required />
         </div>
         <Textarea label="Description" value={description} onChange={(e) => setDescription(e.currentTarget.value)} rows={3} />
-        <div className="grid grid-cols-4 gap-4">
-          <TextInput label="Price (AUD)" type="number" step="0.01" value={price} onChange={(e) => setPrice(e.currentTarget.value)} required />
-          <TextInput label="GST ($)" type="number" step="0.01" min="0" value={gst} onChange={(e) => setGst(e.currentTarget.value)} placeholder="0 = free" />
+        <div className="grid grid-cols-5 gap-4">
+          <TextInput label="Base Price ($)" type="number" step="0.01" value={price} onChange={(e) => setPrice(e.currentTarget.value)} required />
+          <TextInput label="GST ($)" type="number" step="0.01" min="0" value={gst} onChange={(e) => setGst(e.currentTarget.value)} placeholder="0 = GST free" />
+          <TextInput label="Total Amount ($)" value={totalAmount} readOnly variant="filled" />
           <TextInput label="Compare At Price" type="number" step="0.01" value={compareAtPrice} onChange={(e) => setCompareAtPrice(e.currentTarget.value)} />
           <Select
             label="Unit"

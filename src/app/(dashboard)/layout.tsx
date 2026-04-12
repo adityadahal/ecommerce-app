@@ -5,7 +5,7 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { AppShell, NavLink, Group, Text, Badge, Burger, Divider } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
-import { LayoutDashboard, Package, FolderTree, ShoppingBag, Truck, LogOut, Store } from "lucide-react";
+import { LayoutDashboard, Package, FolderTree, ShoppingBag, Truck, MapPin, LogOut, Store } from "lucide-react";
 import { signOut } from "next-auth/react";
 
 const navItems = [
@@ -14,6 +14,7 @@ const navItems = [
   { href: "/dashboard/categories", label: "Categories", icon: FolderTree },
   { href: "/dashboard/orders", label: "Orders", icon: ShoppingBag },
   { href: "/dashboard/delivery-zones", label: "Delivery Zones", icon: Truck },
+  { href: "/dashboard/suburbs", label: "Suburbs", icon: MapPin },
 ];
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {

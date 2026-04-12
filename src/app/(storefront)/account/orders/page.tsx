@@ -23,7 +23,7 @@ export default async function OrdersPage() {
       ) : (
         <Stack gap="sm">
           {orders.map((order) => {
-            const address = order.deliveryAddress as { street: string; suburb: string; state: string; postcode: string } | null;
+            const address = order.deliveryAddress as { street: string; suburb: string; state?: string; postcode: string } | null;
             return (
               <Link key={order.id} href={`/account/orders/${order.id}`} style={{ display: "block", textDecoration: "none", color: "inherit" }}>
               <Paper p="md" radius="lg" withBorder className="transition-shadow hover:shadow-sm">
@@ -39,7 +39,7 @@ export default async function OrdersPage() {
                 </Group>
                 <Group gap="md" mt="xs">
                   {order.customerPhone && <Text size="sm" c="dimmed">{order.customerPhone}</Text>}
-                  {address && <Group gap={4}><MapPin size={12} /><Text size="sm" c="dimmed">{address.suburb} {address.state} {address.postcode}</Text></Group>}
+                  {address && <Group gap={4}><MapPin size={12} /><Text size="sm" c="dimmed">{[address.suburb, address.state, address.postcode].filter(Boolean).join(" ")}</Text></Group>}
                 </Group>
                 <Group justify="space-between" mt="xs">
                   <Text size="sm" c="dimmed">{order.items.length} items</Text>

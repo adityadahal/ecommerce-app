@@ -16,7 +16,7 @@ export default async function OrderDetailPage({ params }: Props) {
   const session = await auth();
   const order = await db.order.findFirst({ where: { id, userId: session!.user.id }, include: { items: true } });
   if (!order) notFound();
-  const address = order.deliveryAddress as { street: string; suburb: string; state: string; postcode: string };
+  const address = order.deliveryAddress as { street: string; suburb: string; state?: string; postcode: string };
 
   return (
     <div>

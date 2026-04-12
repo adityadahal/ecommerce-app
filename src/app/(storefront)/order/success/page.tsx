@@ -68,7 +68,7 @@ export default async function OrderSuccessPage({ searchParams }: Props) {
   const order = await verifyAndUpdatePayment(sp.order);
   if (!order) return <Container size={680} py={60} ta="center"><Text>Order not found.</Text><Link href="/"><Button color="maroon" mt="md">Go Home</Button></Link></Container>;
 
-  const address = order.deliveryAddress as { street: string; suburb: string; state: string; postcode: string };
+  const address = order.deliveryAddress as { street: string; suburb: string; state?: string; postcode: string };
 
   return (
     <Container size={680} py={60}>
