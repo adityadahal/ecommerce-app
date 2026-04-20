@@ -56,7 +56,7 @@ export default async function ProductPage({ params }: Props) {
 
           <Text size="sm" c="dimmed" mt={4}>per {product.unit}</Text>
           {product.gst > 0 ? (
-            <Text size="sm" c="dimmed">Incl. GST ({formatPrice(product.gst)})</Text>
+            <Text size="sm" c="dimmed">incl. {formatPrice(product.gst)} GST</Text>
           ) : (
             <Text size="sm" c="dimmed">GST free</Text>
           )}
